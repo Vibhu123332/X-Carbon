@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>X-Carbon Dashboard</title>
+
+<style>
+
+body{
+margin:0;
+font-family:Arial, Helvetica, sans-serif;
+background:#0a0015;
+color:white;
+overflow-x:hidden;
+}
+
+/* SPLASH SCREEN */
+
+#splash{
+position:fixed;
+width:100%;
+height:100vh;
+background:linear-gradient(135deg,#200040,#6a00ff);
+display:flex;
+flex-direction:column;
+align-items:center;
+justify-content:center;
+z-index:10;
+}
+
+.logo{
+font-size:70px;
+letter-spacing:6px;
+animation:glow 2s infinite alternate;
+}
+
+.tagline{
+font-size:24px;
+opacity:0.8;
+}
+
+@keyframes glow{
+from{ text-shadow:0 0 10px #a64dff;}
+to{ text-shadow:0 0 40px #e0b3ff;}
+}
+
+/* LOGIN PAGE */
+
+#connect{
+text-align:center;
+padding:120px 20px;
+}
+
+.login-buttons{
+margin-top:30px;
+}
+
+button{
+padding:15px 40px;
+margin:10px;
+font-size:18px;
+border:none;
+border-radius:30px;
+background:#7a2cff;
+color:white;
+cursor:pointer;
+box-shadow:0 0 20px #7a2cff;
+transition:0.3s;
+}
+
+button:hover{
+background:#9b4dff;
+}
+
+/* HERO SECTION */
+
+.hero{
+padding:120px 10%;
+text-align:center;
+}
+
+.hero-title{
+font-size:55px;
+color:#d9b3ff;
+}
+
+.hero-sub{
+font-size:20px;
+opacity:0.8;
+}
+
+/* DASHBOARD */
+
+.dashboard{
+padding:80px 10%;
+}
+
+.section-title{
+text-align:center;
+font-size:40px;
+margin-bottom:40px;
+color:#cda6ff;
+}
+
+.container{
+display:flex;
+gap:30px;
+flex-wrap:wrap;
+justify-content:center;
+}
+
+.card{
+background:#140026;
+padding:25px;
+border-radius:15px;
+width:250px;
+text-align:center;
+box-shadow:0 0 25px rgba(150,0,255,0.5);
+transition:0.3s;
+}
+
+.card:hover{
+transform:translateY(-10px);
+}
+
+.card h2{
+color:#b366ff;
+}
+
+.value{
+font-size:40px;
+animation:blink 1.5s infinite;
+}
+
+@keyframes blink{
+0%{opacity:1}
+50%{opacity:0.4}
+100%{opacity:1}
+}
+
+/* HOW IT WORKS */
+
+.how{
+padding:80px 15%;
+text-align:center;
+}
+
+.how p{
+font-size:20px;
+opacity:0.85;
+line-height:1.7;
+}
+
+/* IMPACT */
+
+.impact{
+padding:80px 15%;
+text-align:center;
+background:#110020;
+}
+
+canvas{
+position:fixed;
+top:0;
+left:0;
+z-index:-1;
+}
+
+#main{
+display:none;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<canvas id="particles"></canvas>
+
+<!-- SPLASH -->
+
+<div id="splash">
+
+<h1 class="logo">X-CARBON</h1>
+<p class="tagline">Turning Pollution Into Ink</p>
+
+</div>
+
+
+<!-- LOGIN -->
+
+<section id="connect">
+
+<h1>Access Carbon Dashboard</h1>
+
+<p>Select how you want to continue</p>
+
+<div class="login-buttons">
+
+<button id="connectBtn">Connect ESP32 Device</button>
+
+<button id="guestBtn">Guest Demo Mode</button>
+
+</div>
+
+<p id="status">Waiting for selection...</p>
+
+</section>
+
+
+<!-- MAIN WEBSITE -->
+
+<div id="main">
+
+<section class="hero">
+
+<h1 class="hero-title">
+Capture Carbon.<br>
+Create Ink.<br>
+Change The Future.
+</h1>
+
+<p class="hero-sub">
+X-Carbon captures soot from vehicle exhaust and converts it into usable ink.
+</p>
+
+</section>
+
+
+<section class="dashboard">
+
+<h1 class="section-title">Live Carbon Capture Data</h1>
+
+<div class="container">
+
+<div class="card">
+<h2>Carbon Captured</h2>
+<div class="value" id="carbon">0 mg</div>
+</div>
+
+<div class="card">
+<h2>Ink Produced</h2>
+<div class="value" id="ink">0 ml</div>
+</div>
+
+<div class="card">
+<h2>AQI Level</h2>
+<div class="value" id="aqi">0</div>
+</div>
+
+<div class="card">
+<h2>Vehicle Tested</h2>
+<div class="value" id="vehicle">Bike</div>
+</div>
+
+</div>
+
+</section>
+
+
+<section class="how">
+
+<h1 class="section-title">How X-Carbon Works</h1>
+
+<p>
+The X-Carbon device attaches to a vehicle exhaust.  
+A high-temperature stainless steel mesh captures carbon soot particles.  
+The captured carbon is purified and processed to create ink pigment.  
+This pigment is then used to produce writing ink for pens and markers.
+</p>
+
+</section>
+
+
+<section class="impact">
+
+<h1 class="section-title">Environmental Impact</h1>
+
+<p>
+Vehicle exhaust produces harmful particulate pollution.  
+X-Carbon transforms this pollution into a useful resource.  
+By converting carbon soot into ink, the device demonstrates how waste emissions
+can be reused for sustainable products.
+</p>
+
+</section>
+
+</div>
+
+
+<script>
+
+/* SPLASH */
+
+setTimeout(()=>{
+document.getElementById("splash").style.display="none";
+},5000);
+
+
+/* BUTTONS */
+
+const connectBtn=document.getElementById("connectBtn");
+const guestBtn=document.getElementById("guestBtn");
+const statusText=document.getElementById("status");
+const mainPage=document.getElementById("main");
+
+
+/* BLUETOOTH CONNECTION */
+
+connectBtn.addEventListener("click",async()=>{
+
+try{
+
+const device=await navigator.bluetooth.requestDevice({
+acceptAllDevices:true
+});
+
+statusText.innerText="Connected to "+device.name;
+
+mainPage.style.display="block";
+
+}
+catch(error){
+
+statusText.innerText="Connection failed";
+
+}
+
+});
+
+
+/* GUEST MODE */
+
+guestBtn.addEventListener("click",()=>{
+
+statusText.innerText="Guest Demo Mode Active";
+
+mainPage.style.display="block";
+
+document.getElementById("carbon").innerText="18 mg";
+document.getElementById("ink").innerText="1.8 ml";
+document.getElementById("aqi").innerText="230";
+document.getElementById("vehicle").innerText="Demo Bike";
+
+});
+
+
+/* PARTICLE ANIMATION */
+
+const canvas=document.getElementById("particles");
+const ctx=canvas.getContext("2d");
+
+canvas.width=window.innerWidth;
+canvas.height=window.innerHeight;
+
+let particles=[];
+
+for(let i=0;i<120;i++){
+
+particles.push({
+x:Math.random()*canvas.width,
+y:Math.random()*canvas.height,
+size:Math.random()*3,
+speed:Math.random()*0.6
+});
+
+}
+
+function animate(){
+
+ctx.clearRect(0,0,canvas.width,canvas.height);
+
+ctx.fillStyle="#a64dff";
+
+particles.forEach(p=>{
+
+ctx.beginPath();
+ctx.arc(p.x,p.y,p.size,0,Math.PI*2);
+ctx.fill();
+
+p.y-=p.speed;
+
+if(p.y<0){
+p.y=canvas.height;
+p.x=Math.random()*canvas.width;
+}
+
+});
+
+requestAnimationFrame(animate);
+
+}
+
+animate();
+
+</script>
+
+</body>
+</html>

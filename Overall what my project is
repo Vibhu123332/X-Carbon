@@ -1,1 +1,6 @@
-SO This is the overall description of what my project is so see what happens is that my Device gets attached to cars,bikes and other vehicles exhausts. Then when pollution comes out it goes through a filtration unit made by us which separate carbon that is soot by the process of electrolytic coagulation which breaks down it into co2 into c and oxygen and then oxzen is given out so this is step one then the soot is mixed with gum arabic and glycerin and some other things which form ink and then we will form a kit like science kit which will be sold and this device will be attached to car exhaust and carbon stored will be taken out by kids or students and they will make ink using it or there is another method in which ink will be directly converted in the device and used in pens or brushes.
+X Carbon is a smart drone that flies in the air and helps reduce pollution.
+It takes in polluted air using fans, then uses high voltage electricity to break carbon dioxide (CO₂) into carbon and oxygen. The oxygen is released back into the air, making it cleaner, and the carbon is collected and reused to make useful products like ink.
+
+The drone is intelligent—it can move on its own using a camera (ESP32-CAM), detect polluted areas, and decide where to go. There is also a second version that can be attached to cars to reduce pollution directly from vehicles.
+
+A mobile app is connected to the system, which shows pollution levels, drone location, and performance in real time.

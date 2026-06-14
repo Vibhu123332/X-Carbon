@@ -1,0 +1,1377 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>X-CARBON — Turning Pollution Into Ink</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600;700&family=Space+Mono&display=swap" rel="stylesheet">
+<style>
+:root{
+  --p:#7c3aed;--p2:#a855f7;--neon:#c084fc;--neon2:#e879f9;
+  --dark:#07020f;--card:rgba(124,58,237,0.08);--border:rgba(168,85,247,0.22);
+  --text:#e8dff8;--muted:#9d8fbc;
+  --green:#00ff88;--red:#ff3d6b;--yellow:#fbbf24;--blue:#38bdf8;--orange:#fb923c;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{background:var(--dark);color:var(--text);font-family:'Rajdhani',sans-serif;overflow-x:hidden;min-height:100vh;}
+::-webkit-scrollbar{width:3px;}
+::-webkit-scrollbar-thumb{background:var(--p);border-radius:2px;}
+
+/* ── SPLASH ── */
+#splash{position:fixed;inset:0;background:var(--dark);z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;transition:opacity .8s ease;}
+#splash.hide{opacity:0;pointer-events:none;}
+#splash-canvas{position:absolute;inset:0;}
+.sp-front{position:relative;z-index:2;text-align:center;display:flex;flex-direction:column;align-items:center;}
+.sp-title{font-family:'Orbitron',monospace;font-size:clamp(2.8rem,10vw,7.5rem);font-weight:900;letter-spacing:.15em;background:linear-gradient(135deg,#fff 0%,var(--neon) 40%,var(--neon2) 70%,var(--p) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;animation:glow 1.5s ease-in-out infinite alternate;}
+@keyframes glow{from{filter:drop-shadow(0 0 12px rgba(168,85,247,.4));}to{filter:drop-shadow(0 0 50px rgba(192,132,252,.9));}}
+.sp-tag{font-family:'Space Mono',monospace;font-size:clamp(.65rem,1.8vw,.9rem);color:var(--muted);letter-spacing:.35em;margin-top:.8rem;text-transform:uppercase;}
+.sp-track{width:200px;height:2px;background:rgba(168,85,247,.15);border-radius:2px;margin-top:3rem;overflow:hidden;}
+.sp-fill{height:100%;width:0;background:linear-gradient(90deg,var(--p),var(--neon2));border-radius:2px;box-shadow:0 0 8px var(--neon);transition:width .1s linear;}
+.sp-st{font-family:'Space Mono',monospace;font-size:.65rem;color:var(--p2);letter-spacing:.12em;margin-top:.7rem;min-height:1.2em;}
+
+/* ── APP ── */
+#app{display:none;}
+.page{display:none;min-height:100vh;}
+.page.active{display:block;animation:fadeIn .35s ease;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:none;}}
+
+/* ── BUTTONS ── */
+.btn-main{display:inline-flex;align-items:center;justify-content:center;gap:.6rem;padding:1rem 2.2rem;border-radius:10px;border:none;background:linear-gradient(135deg,var(--p),var(--neon2));color:#fff;font-family:'Rajdhani',sans-serif;font-size:1.05rem;font-weight:700;letter-spacing:.08em;cursor:pointer;transition:all .25s;box-shadow:0 0 24px rgba(124,58,237,.5);}
+.btn-main:hover{box-shadow:0 0 45px rgba(168,85,247,.7);transform:translateY(-3px);}
+.btn-outline{display:inline-flex;align-items:center;justify-content:center;gap:.6rem;padding:1rem 2.2rem;border-radius:10px;border:1.5px solid var(--border);background:transparent;color:var(--neon);font-family:'Rajdhani',sans-serif;font-size:1.05rem;font-weight:700;letter-spacing:.08em;cursor:pointer;transition:all .25s;}
+.btn-outline:hover{border-color:var(--neon);box-shadow:0 0 20px rgba(192,132,252,.2);transform:translateY(-2px);}
+.btn-sm{padding:.45rem 1.1rem;border-radius:8px;border:1px solid var(--border);background:rgba(124,58,237,.15);color:var(--neon);font-family:'Space Mono',monospace;font-size:.68rem;cursor:pointer;transition:all .2s;letter-spacing:.06em;}
+.btn-sm:hover{background:rgba(124,58,237,.35);box-shadow:0 0 14px rgba(124,58,237,.4);}
+.btn-back{display:inline-flex;align-items:center;gap:.5rem;padding:.5rem 1.1rem;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--muted);font-family:'Space Mono',monospace;font-size:.68rem;cursor:pointer;transition:all .2s;}
+.btn-back:hover{border-color:var(--neon);color:var(--neon);}
+
+/* ── LANDING ── */
+#pg-landing{display:flex;align-items:center;justify-content:center;flex-direction:column;position:relative;overflow:hidden;padding:2rem;min-height:100vh;}
+#hero-canvas{position:absolute;inset:0;pointer-events:none;}
+.land-inner{position:relative;z-index:2;text-align:center;max-width:720px;}
+.land-badge{display:inline-flex;align-items:center;gap:.5rem;padding:.35rem 1.1rem;border:1px solid var(--border);border-radius:50px;font-family:'Space Mono',monospace;font-size:.62rem;color:var(--neon);letter-spacing:.15em;background:rgba(124,58,237,.08);backdrop-filter:blur(10px);margin-bottom:2rem;}
+.land-h{font-family:'Orbitron',monospace;font-size:clamp(2rem,6.5vw,5rem);font-weight:900;line-height:1.1;margin-bottom:1.5rem;}
+.land-h .g{background:linear-gradient(90deg,var(--neon),var(--neon2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.land-sub{color:var(--muted);font-size:clamp(.9rem,2.5vw,1.1rem);line-height:1.8;max-width:520px;margin:0 auto 2.8rem;}
+.btn-row{display:flex;gap:1.2rem;justify-content:center;flex-wrap:wrap;}
+
+/* ── BT PAGE ── */
+#pg-bt-inner{max-width:660px;margin:0 auto;padding:0 1.5rem 3rem;}
+.pg-lbl{font-family:'Space Mono',monospace;font-size:.62rem;letter-spacing:.35em;color:var(--neon2);text-transform:uppercase;margin-bottom:.5rem;}
+.pg-ttl{font-family:'Orbitron',monospace;font-size:clamp(1.3rem,3.5vw,2rem);font-weight:700;color:#fff;margin-bottom:.4rem;}
+.pg-sub{color:var(--muted);font-size:.9rem;line-height:1.6;margin-bottom:2rem;}
+.bt-box{border:1px solid var(--border);border-radius:16px;background:var(--card);overflow:hidden;}
+.bt-top{padding:1.2rem 1.5rem;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap;}
+.bt-status{display:flex;align-items:center;gap:.6rem;font-family:'Space Mono',monospace;font-size:.68rem;letter-spacing:.06em;}
+.bdot{width:9px;height:9px;border-radius:50%;flex-shrink:0;}
+.bdot.idle{background:var(--muted);}
+.bdot.scanning{background:var(--yellow);box-shadow:0 0 8px var(--yellow);animation:blk 1s infinite;}
+.bdot.done{background:var(--green);box-shadow:0 0 8px var(--green);}
+@keyframes blk{0%,100%{opacity:1;}50%{opacity:.2;}}
+.bt-wave{display:flex;align-items:center;justify-content:center;padding:1.8rem;gap:5px;}
+.bt-wave span{width:4px;border-radius:2px;background:var(--p2);transition:opacity .3s;}
+.bt-wave span:nth-child(1){height:18px;}.bt-wave span:nth-child(2){height:32px;}.bt-wave span:nth-child(3){height:48px;}.bt-wave span:nth-child(4){height:32px;}.bt-wave span:nth-child(5){height:18px;}
+.bt-wave.idle span{opacity:.18;}
+.bt-wave.active span{animation:wv 1.2s ease-in-out infinite;}
+.bt-wave.active span:nth-child(2){animation-delay:.1s;}.bt-wave.active span:nth-child(3){animation-delay:.2s;}.bt-wave.active span:nth-child(4){animation-delay:.3s;}.bt-wave.active span:nth-child(5){animation-delay:.4s;}
+@keyframes wv{0%,100%{transform:scaleY(.3);}50%{transform:scaleY(1);}}
+.bt-list{padding:0 1.2rem 1.2rem;}
+.bt-empty{text-align:center;padding:1.5rem;color:var(--muted);font-family:'Space Mono',monospace;font-size:.72rem;}
+.bt-dev{display:flex;align-items:center;justify-content:space-between;gap:1rem;padding:.9rem 1.1rem;border:1px solid var(--border);border-radius:11px;background:rgba(124,58,237,.04);margin-bottom:.7rem;cursor:pointer;transition:all .25s;animation:slideIn .35s ease both;}
+.bt-dev:hover{border-color:var(--p2);background:rgba(124,58,237,.12);transform:translateX(4px);}
+@keyframes slideIn{from{opacity:0;transform:translateX(-16px);}to{opacity:1;transform:none;}}
+.bt-dev-l{display:flex;align-items:center;gap:.9rem;}
+.bt-dev-icon{width:38px;height:38px;border-radius:9px;background:rgba(124,58,237,.15);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0;}
+.bt-dev-name{font-weight:700;font-size:.92rem;color:#fff;}
+.bt-dev-id{font-family:'Space Mono',monospace;font-size:.58rem;color:var(--muted);margin-top:.1rem;}
+.bt-dev-r{text-align:right;flex-shrink:0;}
+.bt-sig{font-family:'Space Mono',monospace;font-size:.62rem;color:var(--green);margin-bottom:.4rem;}
+.bt-conn-btn{padding:.35rem .85rem;border-radius:6px;border:1px solid var(--p2);background:rgba(124,58,237,.18);color:var(--neon);font-family:'Rajdhani',sans-serif;font-size:.82rem;font-weight:700;cursor:pointer;transition:all .2s;}
+.bt-conn-btn:hover{background:linear-gradient(135deg,var(--p),var(--neon2));border-color:transparent;color:#fff;}
+.bt-conn-btn.connected{background:rgba(0,255,136,.1);border-color:var(--green);color:var(--green);}
+.bt-success{display:none;margin:1.2rem;padding:1rem 1.4rem;border-radius:11px;border:1px solid var(--green);background:rgba(0,255,136,.05);color:var(--green);font-family:'Space Mono',monospace;font-size:.74rem;text-align:center;}
+
+/* ── SIDEBAR LAYOUT ── */
+#pg-guest{display:flex;min-height:100vh;}
+.sidebar{width:232px;flex-shrink:0;background:rgba(10,3,22,.97);border-right:1px solid var(--border);display:flex;flex-direction:column;position:fixed;top:0;left:0;bottom:0;z-index:200;overflow-y:auto;}
+.sb-logo{padding:1.4rem 1.4rem 1.2rem;border-bottom:1px solid var(--border);font-family:'Orbitron',monospace;font-weight:900;font-size:1.1rem;letter-spacing:.1em;background:linear-gradient(90deg,var(--neon),var(--neon2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.sb-grp{margin-top:.4rem;}
+.sb-grp-lbl{padding:.55rem 1.4rem .2rem;font-family:'Space Mono',monospace;font-size:.56rem;color:rgba(157,143,188,.4);letter-spacing:.2em;text-transform:uppercase;}
+.tab-btn{display:flex;align-items:center;gap:.75rem;padding:.7rem 1.4rem;border:none;background:transparent;color:var(--muted);font-family:'Rajdhani',sans-serif;font-size:.95rem;font-weight:600;cursor:pointer;transition:all .18s;width:100%;text-align:left;border-left:2px solid transparent;}
+.tab-btn:hover{color:var(--text);background:rgba(124,58,237,.07);}
+.tab-btn.active{color:#fff;background:rgba(124,58,237,.14);border-left-color:var(--neon);}
+.tab-btn .ti{font-size:1rem;width:20px;text-align:center;flex-shrink:0;}
+.tab-badge{margin-left:auto;padding:.1rem .45rem;border-radius:20px;background:rgba(124,58,237,.28);color:var(--neon);font-family:'Space Mono',monospace;font-size:.56rem;}
+.tab-btn.active .tab-badge{background:var(--p);color:#fff;}
+.tab-badge.new{background:var(--red);color:#fff;animation:blk 1.5s infinite;}
+.sb-foot{margin-top:auto;padding:1rem 1.4rem;border-top:1px solid var(--border);display:flex;align-items:center;gap:.5rem;font-family:'Space Mono',monospace;font-size:.62rem;color:var(--green);}
+.sb-dot{width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 6px var(--green);animation:blk 1.2s infinite;}
+.content-wrap{margin-left:232px;display:flex;flex-direction:column;min-height:100vh;flex:1;}
+.topbar{position:sticky;top:0;z-index:100;padding:.85rem 2rem;background:rgba(7,2,15,.92);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:1rem;}
+.tb-title{font-family:'Orbitron',monospace;font-size:.9rem;font-weight:700;color:#fff;}
+.tb-sub{color:var(--muted);font-size:.78rem;margin-top:.1rem;}
+.tb-right{display:flex;align-items:center;gap:1rem;}
+.live-pill{display:flex;align-items:center;gap:.4rem;padding:.3rem .8rem;border-radius:20px;border:1px solid rgba(0,255,136,.2);background:rgba(0,255,136,.06);font-family:'Space Mono',monospace;font-size:.62rem;color:var(--green);}
+.ldot{width:6px;height:6px;border-radius:50%;background:var(--green);box-shadow:0 0 5px var(--green);animation:blk 1.2s infinite;}
+.tab-panel{display:none;padding:2rem;}
+.tab-panel.active{display:block;animation:fadeIn .3s ease;}
+
+/* section headers */
+.sh-lbl{font-family:'Space Mono',monospace;font-size:.6rem;letter-spacing:.35em;color:var(--neon2);text-transform:uppercase;margin-bottom:.45rem;}
+.sh-ttl{font-family:'Orbitron',monospace;font-size:clamp(1.3rem,3vw,2rem);font-weight:700;color:#fff;margin-bottom:.4rem;}
+.sh-sub{color:var(--muted);font-size:.88rem;line-height:1.65;max-width:540px;margin-bottom:2rem;}
+
+/* ── DASHBOARD ── */
+.d-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:1.1rem;margin-bottom:1.5rem;}
+.dcard{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:1.6rem 1.4rem;transition:all .28s;position:relative;overflow:hidden;}
+.dcard:hover{transform:translateY(-5px);border-color:var(--p2);box-shadow:0 0 32px rgba(124,58,237,.22);}
+.dc-icon{font-size:1.7rem;margin-bottom:.7rem;}
+.dc-lbl{font-family:'Space Mono',monospace;font-size:.58rem;letter-spacing:.14em;color:var(--muted);text-transform:uppercase;margin-bottom:.35rem;}
+.dc-val{font-family:'Orbitron',monospace;font-size:1.9rem;font-weight:700;color:#fff;line-height:1;}
+.dc-val small{font-size:.8rem;color:var(--p2);margin-left:.2rem;}
+.dc-trend{font-size:.78rem;color:var(--green);margin-top:.35rem;font-weight:600;}
+.dc-bar{height:2px;background:rgba(168,85,247,.15);border-radius:1px;margin-top:.9rem;overflow:hidden;}
+.dc-fill{height:100%;background:linear-gradient(90deg,var(--p),var(--neon2));transition:width .7s ease;box-shadow:0 0 5px var(--neon);}
+.aqi-alert{display:none;padding:.9rem 1.4rem;border-radius:11px;border:1px solid var(--red);background:rgba(255,61,107,.07);color:var(--red);font-family:'Space Mono',monospace;font-size:.72rem;text-align:center;margin-bottom:1.2rem;animation:ap 1.5s ease-in-out infinite;}
+@keyframes ap{0%,100%{box-shadow:0 0 6px rgba(255,61,107,.2);}50%{box-shadow:0 0 22px rgba(255,61,107,.5);}}
+.g-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:1.1rem;margin-top:1rem;}
+.gcrd{background:var(--card);border:1px solid var(--border);border-radius:13px;padding:1.3rem;}
+.g-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;}
+.g-hdr-ttl{font-family:'Orbitron',monospace;font-size:.8rem;font-weight:700;color:#fff;}
+
+/* ── TECH ── */
+.tech-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:1.1rem;}
+.tcrd{background:var(--card);border:1px solid var(--border);border-radius:13px;padding:1.6rem 1.4rem;text-align:center;transition:all .28s;cursor:default;}
+.tcrd:hover{border-color:var(--p2);box-shadow:0 0 28px rgba(124,58,237,.2);transform:translateY(-4px);}
+.tc-icon{font-size:2rem;margin-bottom:.8rem;}
+.tc-name{font-family:'Orbitron',monospace;font-size:.82rem;font-weight:700;color:#fff;margin-bottom:.3rem;}
+.tc-tag{display:inline-block;padding:.12rem .55rem;border-radius:20px;background:rgba(124,58,237,.2);color:var(--neon);font-family:'Space Mono',monospace;font-size:.56rem;margin-bottom:.5rem;}
+.tc-desc{color:var(--muted);font-size:.8rem;line-height:1.55;}
+
+/* ── STEPS ── */
+.steps-col{max-width:650px;}
+.step-row{display:flex;align-items:flex-start;gap:1.4rem;padding:1.4rem 1.2rem;border-left:2px solid var(--border);margin-left:2.2rem;position:relative;opacity:0;transform:translateX(-18px);transition:opacity .5s ease,transform .5s ease;}
+.step-row.vis{opacity:1;transform:none;}
+.s-num{position:absolute;left:-1.55rem;top:1.4rem;width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,var(--p),var(--neon2));color:#fff;font-family:'Orbitron',monospace;font-size:.82rem;font-weight:700;display:flex;align-items:center;justify-content:center;box-shadow:0 0 18px rgba(124,58,237,.4);}
+.s-body{padding-top:.2rem;}
+.s-icon{font-size:1.3rem;margin-bottom:.3rem;}
+.s-ttl{font-family:'Orbitron',monospace;font-size:.95rem;font-weight:700;color:#fff;margin-bottom:.3rem;}
+.s-desc{color:var(--muted);font-size:.87rem;line-height:1.6;}
+
+/* ── INK ── */
+.ink-tl{max-width:650px;}
+.ink-row{display:flex;gap:1.4rem;margin-bottom:1.8rem;opacity:0;transform:translateY(16px);transition:opacity .45s ease,transform .45s ease;}
+.ink-row.vis{opacity:1;transform:none;}
+.ink-l{display:flex;flex-direction:column;align-items:center;flex-shrink:0;}
+.ink-ico{width:46px;height:46px;border-radius:11px;background:var(--card);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:1.4rem;}
+.ink-line{width:2px;flex:1;min-height:24px;background:linear-gradient(to bottom,var(--p),transparent);margin-top:.4rem;}
+.ink-ttl{font-family:'Orbitron',monospace;font-size:.92rem;font-weight:700;color:#fff;margin-bottom:.3rem;}
+.ink-desc{color:var(--muted);font-size:.85rem;line-height:1.6;}
+.ink-badge{display:inline-flex;gap:.35rem;margin-top:.45rem;padding:.2rem .65rem;border-radius:6px;background:rgba(124,58,237,.14);border:1px solid var(--border);font-family:'Space Mono',monospace;font-size:.62rem;color:var(--neon);}
+
+/* ── IMPACT ── */
+.imp-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:1.1rem;margin-bottom:1.5rem;}
+.imp-card{background:rgba(0,255,136,.04);border:1px solid rgba(0,255,136,.14);border-radius:13px;padding:1.6rem 1.4rem;text-align:center;}
+.imp-big{font-family:'Orbitron',monospace;font-size:2.3rem;font-weight:900;color:var(--green);line-height:1;margin-bottom:.35rem;}
+.imp-name{font-weight:700;font-size:.92rem;color:#fff;margin-bottom:.25rem;}
+.imp-desc{color:var(--muted);font-size:.78rem;line-height:1.5;}
+
+/* ── LOG ── */
+.log-wrap{border:1px solid var(--border);border-radius:13px;overflow:hidden;overflow-x:auto;}
+.ltbl{width:100%;border-collapse:collapse;font-family:'Space Mono',monospace;font-size:.7rem;}
+.ltbl th{background:rgba(124,58,237,.14);color:var(--neon);padding:.75rem 1.1rem;text-align:left;letter-spacing:.1em;font-size:.6rem;text-transform:uppercase;}
+.ltbl td{padding:.7rem 1.1rem;border-top:1px solid rgba(168,85,247,.08);color:var(--muted);}
+.ltbl tr:hover td{background:rgba(124,58,237,.06);color:var(--text);}
+
+/* ══════════════════════════════════════════════════
+   ABOUT ME
+══════════════════════════════════════════════════ */
+.about-hero{display:flex;gap:2.5rem;align-items:flex-start;flex-wrap:wrap;margin-bottom:2.5rem;}
+.about-avatar{
+  width:120px;height:120px;border-radius:50%;flex-shrink:0;
+  background:linear-gradient(135deg,var(--p),var(--neon2));
+  display:flex;align-items:center;justify-content:center;
+  font-size:3.5rem;
+  box-shadow:0 0 0 4px var(--border),0 0 40px rgba(124,58,237,.4);
+  animation:avatarPulse 3s ease-in-out infinite;
+}
+@keyframes avatarPulse{0%,100%{box-shadow:0 0 0 4px var(--border),0 0 30px rgba(124,58,237,.3);}50%{box-shadow:0 0 0 6px rgba(168,85,247,.3),0 0 60px rgba(168,85,247,.5);}}
+.about-bio-wrap{flex:1;min-width:260px;}
+.about-name{font-family:'Orbitron',monospace;font-size:clamp(1.3rem,3vw,2rem);font-weight:900;color:#fff;margin-bottom:.3rem;}
+.about-role{font-family:'Space Mono',monospace;font-size:.72rem;color:var(--neon);letter-spacing:.15em;margin-bottom:1rem;}
+.about-bio{color:var(--muted);font-size:.9rem;line-height:1.75;margin-bottom:1.2rem;}
+.about-tags{display:flex;flex-wrap:wrap;gap:.5rem;}
+.tag{padding:.25rem .7rem;border-radius:20px;border:1px solid var(--border);background:rgba(124,58,237,.1);font-family:'Space Mono',monospace;font-size:.6rem;color:var(--neon2);transition:all .2s;}
+.tag:hover{border-color:var(--neon2);background:rgba(232,121,249,.1);}
+
+.about-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:1rem;margin-bottom:2rem;}
+.astat{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:1.2rem;text-align:center;transition:all .25s;}
+.astat:hover{border-color:var(--p2);transform:translateY(-3px);}
+.astat-val{font-family:'Orbitron',monospace;font-size:1.8rem;font-weight:900;color:var(--neon);line-height:1;margin-bottom:.2rem;}
+.astat-lbl{font-family:'Space Mono',monospace;font-size:.6rem;color:var(--muted);letter-spacing:.1em;}
+
+.skills-section{margin-bottom:2rem;}
+.skill-row{margin-bottom:1rem;}
+.skill-label{display:flex;justify-content:space-between;font-family:'Space Mono',monospace;font-size:.68rem;color:var(--text);margin-bottom:.4rem;}
+.skill-bar{height:6px;background:rgba(168,85,247,.15);border-radius:3px;overflow:hidden;}
+.skill-fill{height:100%;border-radius:3px;background:linear-gradient(90deg,var(--p),var(--neon2));box-shadow:0 0 6px var(--neon);width:0;transition:width 1.2s ease;}
+
+.timeline{max-width:600px;}
+.tl-item{display:flex;gap:1.2rem;padding-bottom:1.8rem;position:relative;}
+.tl-item::before{content:'';position:absolute;left:16px;top:36px;bottom:0;width:2px;background:linear-gradient(to bottom,var(--p),transparent);}
+.tl-dot{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,var(--p),var(--neon2));display:flex;align-items:center;justify-content:center;font-size:.9rem;flex-shrink:0;box-shadow:0 0 12px rgba(124,58,237,.4);}
+.tl-body{}
+.tl-date{font-family:'Space Mono',monospace;font-size:.6rem;color:var(--neon);letter-spacing:.1em;margin-bottom:.2rem;}
+.tl-ttl{font-weight:700;font-size:.95rem;color:#fff;margin-bottom:.2rem;}
+.tl-desc{color:var(--muted);font-size:.82rem;line-height:1.55;}
+
+/* ══════════════════════════════════════════════════
+   GAMES ZONE
+══════════════════════════════════════════════════ */
+.games-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:1.2rem;margin-bottom:2rem;}
+.game-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:1.6rem;text-align:center;transition:all .28s;cursor:pointer;}
+.game-card:hover{border-color:var(--neon);box-shadow:0 0 30px rgba(124,58,237,.25);transform:translateY(-4px);}
+.game-icon{font-size:2.8rem;margin-bottom:.8rem;}
+.game-name{font-family:'Orbitron',monospace;font-size:1rem;font-weight:700;color:#fff;margin-bottom:.3rem;}
+.game-desc{color:var(--muted);font-size:.8rem;line-height:1.5;margin-bottom:1rem;}
+.game-launch{display:inline-flex;align-items:center;gap:.4rem;padding:.5rem 1.2rem;border-radius:8px;background:linear-gradient(135deg,var(--p),var(--neon2));color:#fff;font-family:'Rajdhani',sans-serif;font-size:.9rem;font-weight:700;border:none;cursor:pointer;transition:all .2s;}
+.game-launch:hover{box-shadow:0 0 20px rgba(124,58,237,.5);}
+
+/* GAME MODAL */
+.gmodal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:5000;align-items:center;justify-content:center;padding:1rem;}
+.gmodal.open{display:flex;}
+.gmodal-box{background:#0d0520;border:1px solid var(--border);border-radius:18px;padding:1.8rem;max-width:520px;width:100%;max-height:90vh;overflow-y:auto;position:relative;}
+.gmodal-close{position:absolute;top:1rem;right:1rem;background:rgba(124,58,237,.2);border:1px solid var(--border);border-radius:8px;color:var(--muted);font-size:.8rem;cursor:pointer;padding:.3rem .7rem;font-family:'Space Mono',monospace;}
+.gmodal-close:hover{color:var(--red);border-color:var(--red);}
+.gmodal-title{font-family:'Orbitron',monospace;font-size:1.2rem;font-weight:700;color:#fff;margin-bottom:1.5rem;display:flex;align-items:center;gap:.7rem;}
+
+/* SNAKE */
+#snake-canvas{border:1px solid var(--border);border-radius:10px;display:block;margin:0 auto;}
+.snake-hud{display:flex;justify-content:space-between;align-items:center;margin-bottom:.8rem;}
+.snake-score{font-family:'Orbitron',monospace;font-size:1.2rem;font-weight:700;color:var(--neon);}
+.snake-controls{display:grid;grid-template-columns:repeat(3,40px);gap:4px;margin:1rem auto 0;width:fit-content;}
+.sc-btn{width:40px;height:40px;border-radius:8px;border:1px solid var(--border);background:rgba(124,58,237,.15);color:var(--text);font-size:1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s;}
+.sc-btn:hover,.sc-btn:active{background:rgba(124,58,237,.4);border-color:var(--neon);}
+.sc-blank{width:40px;height:40px;}
+
+/* MEMORY */
+.memory-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:.6rem;margin:0 auto;max-width:340px;}
+.mem-card{aspect-ratio:1;border-radius:10px;border:1px solid var(--border);background:rgba(124,58,237,.15);display:flex;align-items:center;justify-content:center;font-size:1.6rem;cursor:pointer;transition:all .3s;user-select:none;}
+.mem-card.flipped{background:rgba(124,58,237,.35);border-color:var(--neon);}
+.mem-card.matched{background:rgba(0,255,136,.1);border-color:var(--green);animation:matchPop .4s ease;}
+.mem-card.hidden-face{font-size:0;}
+@keyframes matchPop{0%{transform:scale(1);}50%{transform:scale(1.15);}100%{transform:scale(1);}}
+.mem-hud{display:flex;justify-content:space-between;margin-bottom:1rem;font-family:'Space Mono',monospace;font-size:.72rem;color:var(--muted);}
+.mem-hud span{color:var(--neon);}
+
+/* QUIZ */
+.quiz-q{font-family:'Orbitron',monospace;font-size:.95rem;font-weight:700;color:#fff;margin-bottom:1.5rem;line-height:1.5;}
+.quiz-opts{display:flex;flex-direction:column;gap:.7rem;}
+.quiz-opt{padding:.85rem 1.2rem;border-radius:10px;border:1px solid var(--border);background:rgba(124,58,237,.08);color:var(--text);font-family:'Rajdhani',sans-serif;font-size:.95rem;font-weight:600;cursor:pointer;transition:all .2s;text-align:left;}
+.quiz-opt:hover{border-color:var(--p2);background:rgba(124,58,237,.18);}
+.quiz-opt.correct{border-color:var(--green);background:rgba(0,255,136,.1);color:var(--green);}
+.quiz-opt.wrong{border-color:var(--red);background:rgba(255,61,107,.08);color:var(--red);}
+.quiz-feedback{margin-top:1rem;padding:.8rem 1rem;border-radius:8px;font-family:'Space Mono',monospace;font-size:.72rem;display:none;}
+.quiz-feedback.good{display:block;color:var(--green);border:1px solid rgba(0,255,136,.2);background:rgba(0,255,136,.05);}
+.quiz-feedback.bad{display:block;color:var(--red);border:1px solid rgba(255,61,107,.2);background:rgba(255,61,107,.05);}
+.quiz-progress{display:flex;justify-content:space-between;align-items:center;margin-bottom:1.2rem;font-family:'Space Mono',monospace;font-size:.65rem;color:var(--muted);}
+.quiz-bar{height:3px;background:rgba(168,85,247,.15);border-radius:2px;margin-bottom:1.5rem;overflow:hidden;}
+.quiz-bar-fill{height:100%;background:linear-gradient(90deg,var(--p),var(--neon2));border-radius:2px;transition:width .5s ease;}
+.quiz-score-big{text-align:center;padding:2rem;}
+.quiz-score-big .num{font-family:'Orbitron',monospace;font-size:4rem;font-weight:900;color:var(--neon);}
+.quiz-score-big p{color:var(--muted);margin-top:.5rem;font-size:.9rem;}
+
+/* ══════════════════════════════════════════════════
+   FUN EXTRAS / SIDEBAR
+══════════════════════════════════════════════════ */
+.extras-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:1.2rem;}
+.extra-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:1.6rem;}
+.extra-title{font-family:'Orbitron',monospace;font-size:.88rem;font-weight:700;color:#fff;margin-bottom:.3rem;display:flex;align-items:center;gap:.5rem;}
+.extra-sub{color:var(--muted);font-size:.78rem;line-height:1.5;margin-bottom:1rem;}
+
+/* Pollution Fact */
+.fact-box{padding:1rem;border-radius:10px;border:1px solid rgba(251,191,36,.2);background:rgba(251,191,36,.05);color:var(--yellow);font-family:'Space Mono',monospace;font-size:.7rem;line-height:1.7;min-height:60px;}
+.fact-refresh{margin-top:.7rem;padding:.4rem .9rem;border-radius:7px;border:1px solid rgba(251,191,36,.3);background:transparent;color:var(--yellow);font-family:'Space Mono',monospace;font-size:.62rem;cursor:pointer;transition:all .2s;}
+.fact-refresh:hover{background:rgba(251,191,36,.1);}
+
+/* Carbon Calculator */
+.calc-input-row{display:flex;gap:.6rem;align-items:center;margin-bottom:.8rem;flex-wrap:wrap;}
+.calc-input-row label{font-family:'Space Mono',monospace;font-size:.64rem;color:var(--muted);min-width:90px;}
+.calc-inp{flex:1;padding:.45rem .8rem;border-radius:7px;border:1px solid var(--border);background:rgba(124,58,237,.08);color:var(--text);font-family:'Space Mono',monospace;font-size:.75rem;min-width:80px;}
+.calc-inp:focus{outline:none;border-color:var(--p2);}
+.calc-result{padding:.8rem 1rem;border-radius:9px;background:rgba(124,58,237,.12);border:1px solid var(--border);font-family:'Space Mono',monospace;font-size:.72rem;color:var(--neon);line-height:1.7;}
+
+/* Mood Picker */
+.mood-row{display:flex;gap:.6rem;justify-content:center;flex-wrap:wrap;margin-bottom:.8rem;}
+.mood-btn{width:44px;height:44px;border-radius:50%;border:1px solid var(--border);background:rgba(124,58,237,.1);font-size:1.4rem;cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:center;}
+.mood-btn:hover,.mood-btn.active{border-color:var(--neon);box-shadow:0 0 14px rgba(192,132,252,.3);transform:scale(1.15);}
+.mood-msg{font-family:'Space Mono',monospace;font-size:.7rem;color:var(--neon2);text-align:center;min-height:1.4em;}
+
+/* Poll */
+.poll-opt{display:flex;align-items:center;gap:.7rem;margin-bottom:.7rem;cursor:pointer;}
+.poll-label{font-size:.85rem;color:var(--text);min-width:120px;}
+.poll-bar-wrap{flex:1;height:8px;background:rgba(168,85,247,.15);border-radius:4px;overflow:hidden;}
+.poll-fill{height:100%;border-radius:4px;background:linear-gradient(90deg,var(--p),var(--neon2));transition:width .8s ease;}
+.poll-pct{font-family:'Space Mono',monospace;font-size:.62rem;color:var(--muted);min-width:32px;text-align:right;}
+.poll-vote{padding:.5rem 1rem;border-radius:8px;border:1px solid var(--border);background:rgba(124,58,237,.12);color:var(--neon);font-family:'Space Mono',monospace;font-size:.65rem;cursor:pointer;width:100%;margin-top:.5rem;transition:all .2s;}
+.poll-vote:hover{background:rgba(124,58,237,.3);}
+
+/* Weather Widget */
+.weather-box{display:flex;align-items:center;gap:1rem;}
+.weather-icon{font-size:3rem;}
+.weather-info{}
+.weather-temp{font-family:'Orbitron',monospace;font-size:2rem;font-weight:700;color:#fff;}
+.weather-city{font-family:'Space Mono',monospace;font-size:.62rem;color:var(--muted);}
+.weather-desc{font-size:.82rem;color:var(--neon);margin-top:.2rem;}
+
+/* Leaderboard */
+.lb-row{display:flex;align-items:center;gap:.8rem;padding:.7rem .8rem;border-radius:9px;margin-bottom:.4rem;border:1px solid transparent;transition:all .2s;}
+.lb-row:hover{border-color:var(--border);background:rgba(124,58,237,.06);}
+.lb-rank{font-family:'Orbitron',monospace;font-size:.9rem;font-weight:700;width:28px;text-align:center;flex-shrink:0;}
+.lb-rank.gold{color:var(--yellow);}
+.lb-rank.silver{color:#cbd5e1;}
+.lb-rank.bronze{color:var(--orange);}
+.lb-avatar{width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,var(--p),var(--neon2));display:flex;align-items:center;justify-content:center;font-size:.9rem;flex-shrink:0;}
+.lb-name{flex:1;font-weight:600;font-size:.88rem;color:#fff;}
+.lb-score{font-family:'Space Mono',monospace;font-size:.7rem;color:var(--green);}
+
+/* Responsive */
+@media(max-width:700px){
+  .sidebar{position:fixed;transform:translateX(-100%);transition:transform .3s ease;z-index:300;}
+  .sidebar.mob-open{transform:none;}
+  .content-wrap{margin-left:0;}
+  .topbar{padding:.85rem 1rem;}
+  .tab-panel{padding:1.2rem;}
+  .mob-menu-btn{display:flex!important;}
+  .memory-grid{grid-template-columns:repeat(4,1fr);}
+}
+.mob-menu-btn{display:none;flex-direction:column;gap:4px;background:transparent;border:none;cursor:pointer;padding:.3rem;}
+.mob-menu-btn span{width:20px;height:2px;background:var(--muted);border-radius:1px;}
+
+/* Confetti */
+.confetti-piece{position:fixed;width:8px;height:8px;border-radius:2px;pointer-events:none;z-index:9000;animation:confettiFall linear forwards;}
+@keyframes confettiFall{to{transform:translateY(100vh) rotate(720deg);opacity:0;}}
+
+/* Easter egg button */
+.egg-btn{position:fixed;bottom:1.2rem;right:1.2rem;width:42px;height:42px;border-radius:50%;background:rgba(124,58,237,.2);border:1px solid var(--border);color:var(--neon);font-size:1.2rem;cursor:pointer;z-index:500;transition:all .25s;display:flex;align-items:center;justify-content:center;}
+.egg-btn:hover{background:rgba(124,58,237,.4);box-shadow:0 0 20px rgba(124,58,237,.5);transform:rotate(15deg) scale(1.1);}
+
+/* ── CHATBOT ── */
+#xc-chat-btn{position:fixed;bottom:2rem;right:5rem;z-index:9000;width:58px;height:58px;border-radius:50%;background:linear-gradient(135deg,var(--p),var(--neon2));border:none;cursor:pointer;box-shadow:0 0 28px rgba(124,58,237,.65);display:none;align-items:center;justify-content:center;font-size:1.5rem;transition:all .25s;}
+#xc-chat-btn:hover{transform:scale(1.12);box-shadow:0 0 48px rgba(168,85,247,.85);}
+#xc-chat-btn .cnotif{position:absolute;top:-2px;right:-2px;width:15px;height:15px;border-radius:50%;background:var(--red);border:2px solid var(--dark);animation:blk 1.5s infinite;}
+#xc-chat-win{position:fixed;bottom:6.5rem;right:5rem;z-index:9000;width:360px;max-width:calc(100vw - 2rem);height:540px;max-height:calc(100vh - 9rem);background:rgba(7,2,15,.97);border:1px solid var(--border);border-radius:20px;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 0 60px rgba(124,58,237,.35);transform:scale(.92) translateY(12px);opacity:0;pointer-events:none;transition:all .28s cubic-bezier(.34,1.56,.64,1);}
+#xc-chat-win.open{transform:none;opacity:1;pointer-events:all;}
+.chat-hdr{padding:.9rem 1.2rem;background:linear-gradient(135deg,rgba(124,58,237,.35),rgba(232,121,249,.12));border-bottom:1px solid var(--border);display:flex;align-items:center;gap:.75rem;flex-shrink:0;}
+.chat-hdr-av{width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,var(--p),var(--neon2));display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0;box-shadow:0 0 12px rgba(124,58,237,.5);}
+.chat-hdr-info{flex:1;}
+.chat-hdr-name{font-family:'Orbitron',monospace;font-size:.78rem;font-weight:700;color:#fff;}
+.chat-hdr-status{font-family:'Space Mono',monospace;font-size:.56rem;color:var(--green);display:flex;align-items:center;gap:.3rem;margin-top:.15rem;}
+.chat-hdr-close{background:none;border:none;color:var(--muted);font-size:1.1rem;cursor:pointer;padding:.2rem;transition:color .2s;line-height:1;}
+.chat-hdr-close:hover{color:var(--neon);}
+.chat-msgs{flex:1;overflow-y:auto;padding:.9rem;display:flex;flex-direction:column;gap:.65rem;scroll-behavior:smooth;}
+.chat-msgs::-webkit-scrollbar{width:3px;}
+.chat-msgs::-webkit-scrollbar-thumb{background:var(--p);border-radius:2px;}
+.cmsg{max-width:88%;animation:msgIn .22s ease;}
+@keyframes msgIn{from{opacity:0;transform:translateY(7px);}to{opacity:1;transform:none;}}
+.cmsg.bot{align-self:flex-start;}
+.cmsg.user{align-self:flex-end;}
+.cmsg-bubble{padding:.65rem .9rem;border-radius:14px;font-size:.84rem;line-height:1.6;}
+.cmsg.bot .cmsg-bubble{background:rgba(124,58,237,.18);border:1px solid rgba(124,58,237,.28);color:var(--text);border-bottom-left-radius:4px;}
+.cmsg.user .cmsg-bubble{background:linear-gradient(135deg,var(--p),rgba(168,85,247,.75));color:#fff;border-bottom-right-radius:4px;}
+.cmsg-time{font-family:'Space Mono',monospace;font-size:.52rem;color:var(--muted);margin-top:.2rem;padding:0 .15rem;}
+.cmsg.user .cmsg-time{text-align:right;}
+.chat-typing{display:none;align-items:center;gap:.3rem;padding:.45rem .7rem;background:rgba(124,58,237,.1);border:1px solid rgba(124,58,237,.2);border-radius:12px;border-bottom-left-radius:4px;width:fit-content;}
+.chat-typing.show{display:flex;}
+.tdot{width:6px;height:6px;border-radius:50%;background:var(--p2);animation:tdot 1.2s ease-in-out infinite;}
+.tdot:nth-child(2){animation-delay:.2s;}.tdot:nth-child(3){animation-delay:.4s;}
+@keyframes tdot{0%,80%,100%{transform:scale(.65);opacity:.4;}40%{transform:scale(1.1);opacity:1;}}
+.chat-quick{padding:.5rem .75rem;display:flex;gap:.35rem;flex-wrap:wrap;border-top:1px solid var(--border);flex-shrink:0;}
+.qchip{padding:.28rem .65rem;border-radius:20px;border:1px solid var(--border);background:rgba(124,58,237,.1);color:var(--neon);font-family:'Space Mono',monospace;font-size:.55rem;cursor:pointer;transition:all .18s;white-space:nowrap;}
+.qchip:hover{background:rgba(124,58,237,.28);border-color:var(--p2);}
+.chat-inp-row{padding:.65rem .9rem;border-top:1px solid var(--border);display:flex;gap:.55rem;align-items:flex-end;flex-shrink:0;}
+#chat-input{flex:1;background:rgba(124,58,237,.08);border:1px solid var(--border);border-radius:10px;padding:.5rem .8rem;color:var(--text);font-family:'Rajdhani',sans-serif;font-size:.88rem;resize:none;outline:none;min-height:36px;max-height:80px;transition:border-color .2s;line-height:1.4;}
+#chat-input:focus{border-color:var(--p2);}
+#chat-input::placeholder{color:var(--muted);}
+#chat-send{width:36px;height:36px;border-radius:9px;background:linear-gradient(135deg,var(--p),var(--neon2));border:none;color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:.95rem;flex-shrink:0;transition:all .2s;}
+#chat-send:hover{box-shadow:0 0 16px rgba(124,58,237,.6);}
+#chat-send:disabled{opacity:.5;cursor:not-allowed;}
+</style>
+</head>
+<body>
+
+<!-- SPLASH -->
+<div id="splash">
+  <canvas id="splash-canvas"></canvas>
+  <div class="sp-front">
+    <div class="sp-title">X-CARBON</div>
+    <div class="sp-tag">Turning Pollution Into Ink</div>
+    <div class="sp-track"><div class="sp-fill" id="sp-fill"></div></div>
+    <div class="sp-st" id="sp-st">INITIALIZING SYSTEM...</div>
+  </div>
+</div>
+
+<!-- EASTER EGG BUTTON (visible after splash) -->
+<button class="egg-btn" id="egg-btn" style="display:none" onclick="easterEgg()" title="🎉">🥚</button>
+
+<!-- CHATBOT -->
+<button id="xc-chat-btn" title="Chat with X-BOT" onclick="toggleChat()">
+  🤖
+  <div class="cnotif" id="chat-notif"></div>
+</button>
+<div id="xc-chat-win">
+  <div class="chat-hdr">
+    <div class="chat-hdr-av">🤖</div>
+    <div class="chat-hdr-info">
+      <div class="chat-hdr-name">X-BOT</div>
+      <div class="chat-hdr-status"><div class="ldot"></div>Online · X-CARBON Assistant</div>
+    </div>
+    <button class="chat-hdr-close" onclick="toggleChat()">✕</button>
+  </div>
+  <div class="chat-msgs" id="chat-msgs">
+    <div class="chat-typing" id="chat-typing"><div class="tdot"></div><div class="tdot"></div><div class="tdot"></div></div>
+  </div>
+  <div class="chat-quick" id="chat-quick">
+    <button class="qchip" onclick="quickAsk('What is X-CARBON?')">What is X-CARBON?</button>
+    <button class="qchip" onclick="quickAsk('How does it capture carbon?')">How it works?</button>
+    <button class="qchip" onclick="quickAsk('What ink does it make?')">About the ink</button>
+    <button class="qchip" onclick="quickAsk('What sensors are used?')">Tech & sensors</button>
+    <button class="qchip" onclick="quickAsk('What is the environmental impact?')">Impact</button>
+  </div>
+  <div class="chat-inp-row">
+    <textarea id="chat-input" placeholder="Ask me anything about X-CARBON…" rows="1" onkeydown="chatKey(event)"></textarea>
+    <button id="chat-send" onclick="sendChat()">➤</button>
+  </div>
+</div>
+
+<!-- GAME MODALS -->
+<div class="gmodal" id="modal-snake">
+  <div class="gmodal-box" style="max-width:420px;">
+    <button class="gmodal-close" onclick="closeModal('modal-snake')">✕ Close</button>
+    <div class="gmodal-title">🐍 Carbon Snake</div>
+    <div class="snake-hud">
+      <div>Score: <span class="snake-score" id="snake-score">0</span></div>
+      <button class="btn-sm" onclick="startSnake()" id="snake-start-btn">▶ Start</button>
+    </div>
+    <canvas id="snake-canvas" width="360" height="300"></canvas>
+    <div class="snake-controls">
+      <div class="sc-blank"></div>
+      <button class="sc-btn" onclick="snakeDir(0,-1)">▲</button>
+      <div class="sc-blank"></div>
+      <button class="sc-btn" onclick="snakeDir(-1,0)">◀</button>
+      <button class="sc-btn" onclick="snakeDir(0,1)">▼</button>
+      <button class="sc-btn" onclick="snakeDir(1,0)">▶</button>
+    </div>
+    <p style="text-align:center;font-family:'Space Mono',monospace;font-size:.65rem;color:var(--muted);margin-top:.8rem;">Use arrow keys or buttons · Eat carbon particles!</p>
+  </div>
+</div>
+
+<div class="gmodal" id="modal-memory">
+  <div class="gmodal-box" style="max-width:440px;">
+    <button class="gmodal-close" onclick="closeModal('modal-memory')">✕ Close</button>
+    <div class="gmodal-title">🧩 Carbon Memory</div>
+    <div class="mem-hud">
+      <div>Moves: <span id="mem-moves">0</span></div>
+      <div>Pairs: <span id="mem-pairs">0</span>/8</div>
+      <div id="mem-time">Time: 0s</div>
+    </div>
+    <div class="memory-grid" id="memory-grid"></div>
+    <div style="text-align:center;margin-top:1rem;">
+      <button class="btn-sm" onclick="initMemory()">🔄 New Game</button>
+    </div>
+  </div>
+</div>
+
+<div class="gmodal" id="modal-quiz">
+  <div class="gmodal-box" style="max-width:500px;">
+    <button class="gmodal-close" onclick="closeModal('modal-quiz')">✕ Close</button>
+    <div class="gmodal-title">🧠 Eco Quiz</div>
+    <div class="quiz-progress">
+      <span id="quiz-prog">Question 1 of 8</span>
+      <span id="quiz-pts" style="color:var(--neon);">Score: 0</span>
+    </div>
+    <div class="quiz-bar"><div class="quiz-bar-fill" id="quiz-bar-fill" style="width:0%"></div></div>
+    <div id="quiz-content"></div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app">
+
+  <!-- PAGE: LANDING -->
+  <div class="page active" id="pg-landing">
+    <canvas id="hero-canvas"></canvas>
+    <div class="land-inner">
+      <div class="land-badge">🌿 ENVIRONMENTAL IoT SOLUTION</div>
+      <h1 class="land-h">
+        <div style="color:#fff">Capture Carbon.</div>
+        <div class="g">Create Ink.</div>
+        <div style="color:#fff">Change the Future.</div>
+      </h1>
+      <p class="land-sub">X-CARBON attaches to vehicle exhausts, captures carbon in real-time, converts it into ink, and streams live data — turning pollution into purpose.</p>
+      <div class="btn-row">
+        <button class="btn-main" onclick="goTo('pg-bt')">📡 Connect ESP32</button>
+        <button class="btn-outline" onclick="goGuest()">▶ Guest Demo Mode</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- PAGE: BLUETOOTH -->
+  <div class="page" id="pg-bt">
+    <div style="padding:3rem 1.5rem 1rem;max-width:660px;margin:0 auto;">
+      <button class="btn-back" onclick="goTo('pg-landing')">← Back</button>
+    </div>
+    <div id="pg-bt-inner">
+      <div class="pg-lbl">BLUETOOTH / WIFI SCANNER</div>
+      <div class="pg-ttl">Connect ESP32 Device</div>
+      <p class="pg-sub">Scan for nearby X-CARBON hardware. Make sure your device is powered on and within range.</p>
+      <div class="bt-box">
+        <div class="bt-top">
+          <div class="bt-status"><div class="bdot idle" id="bd"></div><span id="bt-txt" style="font-family:'Space Mono',monospace;font-size:.68rem;letter-spacing:.06em;color:var(--muted);">IDLE — Ready to scan</span></div>
+          <button class="btn-sm" id="bt-btn" onclick="btScan()">⟳ SCAN FOR DEVICES</button>
+        </div>
+        <div class="bt-wave idle" id="bt-wave"><span></span><span></span><span></span><span></span><span></span></div>
+        <div class="bt-list" id="bt-list"><div class="bt-empty">Press SCAN to search for nearby devices</div></div>
+        <div class="bt-success" id="bt-ok"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PAGE: GUEST DEMO -->
+  <div class="page" id="pg-guest">
+    <nav class="sidebar" id="sidebar">
+      <div class="sb-logo">X-CARBON</div>
+      <div class="sb-grp">
+        <div class="sb-grp-lbl">Live Data</div>
+        <button class="tab-btn active" onclick="switchTab('t-dash',this)"><span class="ti">📊</span>Dashboard<span class="tab-badge" id="bdg-live">LIVE</span></button>
+        <button class="tab-btn" onclick="switchTab('t-graphs',this)"><span class="ti">📈</span>Live Graphs</button>
+        <button class="tab-btn" onclick="switchTab('t-log',this)"><span class="ti">🗂️</span>Data Log<span class="tab-badge" id="bdg-log">0</span></button>
+      </div>
+      <div class="sb-grp">
+        <div class="sb-grp-lbl">Project Info</div>
+        <button class="tab-btn" onclick="switchTab('t-how',this)"><span class="ti">⚙️</span>How It Works</button>
+        <button class="tab-btn" onclick="switchTab('t-tech',this)"><span class="ti">🧠</span>Technology</button>
+        <button class="tab-btn" onclick="switchTab('t-ink',this)"><span class="ti">🖋️</span>Ink Process</button>
+        <button class="tab-btn" onclick="switchTab('t-impact',this)"><span class="ti">🌱</span>Impact</button>
+      </div>
+      <div class="sb-grp">
+        <div class="sb-grp-lbl">Fun Zone</div>
+        <button class="tab-btn" onclick="switchTab('t-about',this)"><span class="ti">👤</span>About Me</button>
+        <button class="tab-btn" onclick="switchTab('t-games',this)"><span class="ti">🎮</span>Games Zone<span class="tab-badge new">NEW</span></button>
+        <button class="tab-btn" onclick="switchTab('t-extras',this)"><span class="ti">✨</span>Fun Extras</button>
+      </div>
+      <div class="sb-grp">
+        <div class="sb-grp-lbl">Links</div>
+        <button class="tab-btn" onclick="window.open('https://github.com','_blank')"><span class="ti">⬡</span>GitHub</button>
+        <button class="tab-btn" onclick="goTo('pg-landing')"><span class="ti">←</span>Exit Demo</button>
+      </div>
+      <div class="sb-foot"><div class="sb-dot"></div>DEMO MODE ACTIVE</div>
+    </nav>
+
+    <div class="content-wrap">
+      <div class="topbar">
+        <div style="display:flex;align-items:center;gap:.8rem;">
+          <button class="mob-menu-btn" onclick="toggleSB()"><span></span><span></span><span></span></button>
+          <div>
+            <div class="tb-title" id="tb-title">Dashboard</div>
+            <div class="tb-sub" id="tb-sub">Real-time sensor readings</div>
+          </div>
+        </div>
+        <div class="tb-right">
+          <div class="live-pill"><div class="ldot"></div>DEMO LIVE</div>
+          <button class="btn-back" onclick="goTo('pg-landing')">← Exit</button>
+        </div>
+      </div>
+
+      <!-- ── DASHBOARD ── -->
+      <div class="tab-panel active" id="t-dash">
+        <div class="sh-lbl">LIVE DASHBOARD</div>
+        <div class="sh-ttl">Real-Time System Data</div>
+        <div class="sh-sub">Readings update every 3 seconds from your X-CARBON device.</div>
+        <div class="aqi-alert" id="aqi-alert">⚠️ HIGH AQI DETECTED — Air quality is unhealthy. Increase carbon capture rate.</div>
+        <div class="d-grid">
+          <div class="dcard"><div class="dc-icon">🌑</div><div class="dc-lbl">Carbon Captured</div><div class="dc-val" id="v-c">0<small>mg</small></div><div class="dc-trend" id="tr-c">Waiting…</div><div class="dc-bar"><div class="dc-fill" id="b-c" style="width:0%"></div></div></div>
+          <div class="dcard"><div class="dc-icon">🖋️</div><div class="dc-lbl">Ink Produced</div><div class="dc-val" id="v-i">0<small>ml</small></div><div class="dc-trend" id="tr-i">Waiting…</div><div class="dc-bar"><div class="dc-fill" id="b-i" style="width:0%"></div></div></div>
+          <div class="dcard"><div class="dc-icon">💨</div><div class="dc-lbl">AQI Level</div><div class="dc-val" id="v-a" style="font-size:1.6rem">--</div><div class="dc-trend" id="tr-a">Measuring…</div><div class="dc-bar"><div class="dc-fill" id="b-a" style="width:0%;background:linear-gradient(90deg,var(--green),var(--yellow))"></div></div></div>
+          <div class="dcard"><div class="dc-icon">🏍️</div><div class="dc-lbl">Vehicle</div><div class="dc-val" style="font-size:1.25rem">Motorbike</div><div class="dc-trend">Engine: 150cc</div><div class="dc-bar"><div class="dc-fill" style="width:60%"></div></div></div>
+        </div>
+        <div class="g-row">
+          <div class="gcrd"><div class="g-hdr"><div class="g-hdr-ttl">Carbon (mg)</div><div class="live-pill" style="font-size:.58rem;padding:.2rem .6rem;"><div class="ldot"></div>LIVE</div></div><canvas id="c-dash-c" height="130"></canvas></div>
+          <div class="gcrd"><div class="g-hdr"><div class="g-hdr-ttl">AQI Index</div><div class="live-pill" style="font-size:.58rem;padding:.2rem .6rem;"><div class="ldot"></div>LIVE</div></div><canvas id="c-dash-a" height="130"></canvas></div>
+        </div>
+      </div>
+
+      <!-- ── LIVE GRAPHS ── -->
+      <div class="tab-panel" id="t-graphs">
+        <div class="sh-lbl">ANALYTICS</div><div class="sh-ttl">Live Graph Monitoring</div><div class="sh-sub">30-point rolling window — all channels in real-time.</div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:1.2rem;">
+          <div class="gcrd"><div class="g-hdr"><div class="g-hdr-ttl">Carbon Captured (mg)</div><div class="live-pill" style="font-size:.58rem;padding:.2rem .6rem;"><div class="ldot"></div>LIVE</div></div><canvas id="c-big-c" height="190"></canvas></div>
+          <div class="gcrd"><div class="g-hdr"><div class="g-hdr-ttl">AQI Over Time</div><div class="live-pill" style="font-size:.58rem;padding:.2rem .6rem;"><div class="ldot"></div>LIVE</div></div><canvas id="c-big-a" height="190"></canvas></div>
+          <div class="gcrd"><div class="g-hdr"><div class="g-hdr-ttl">Ink Produced (ml)</div><div class="live-pill" style="font-size:.58rem;padding:.2rem .6rem;"><div class="ldot"></div>LIVE</div></div><canvas id="c-big-i" height="190"></canvas></div>
+          <div class="gcrd"><div class="g-hdr"><div class="g-hdr-ttl">Capture Rate (mg/min)</div><div class="live-pill" style="font-size:.58rem;padding:.2rem .6rem;"><div class="ldot"></div>LIVE</div></div><canvas id="c-big-r" height="190"></canvas></div>
+        </div>
+      </div>
+
+      <!-- ── DATA LOG ── -->
+      <div class="tab-panel" id="t-log">
+        <div class="sh-lbl">DATA LOG</div><div class="sh-ttl">Session History</div><div class="sh-sub">Complete record of all readings this session.</div>
+        <div class="log-wrap"><table class="ltbl"><thead><tr><th>#</th><th>Time</th><th>Carbon mg</th><th>Ink ml</th><th>AQI</th><th>Rate</th><th>Status</th></tr></thead><tbody id="log-tbody"><tr><td colspan="7" style="text-align:center;padding:2rem;color:var(--muted);">Waiting for first reading…</td></tr></tbody></table></div>
+      </div>
+
+      <!-- ── HOW IT WORKS ── -->
+      <div class="tab-panel" id="t-how">
+        <div class="sh-lbl">PROCESS</div><div class="sh-ttl">How X-CARBON Works</div><div class="sh-sub">From exhaust pipe to finished ink in five steps.</div>
+        <div class="steps-col">
+          <div class="step-row"><div class="s-num">1</div><div class="s-body"><div class="s-icon">🚗</div><div class="s-ttl">Exhaust Enters</div><div class="s-desc">Vehicle exhaust is channeled into the X-CARBON capture unit through a sealed adapter fitted to the tailpipe — no modification required.</div></div></div>
+          <div class="step-row"><div class="s-num">2</div><div class="s-body"><div class="s-icon">🌑</div><div class="s-ttl">Carbon Captured</div><div class="s-desc">A proprietary nano-filter mesh traps carbon soot particles with 94% efficiency. The MQ-135 sensor measures AQI, CO₂, and NOₓ in real-time.</div></div></div>
+          <div class="step-row"><div class="s-num">3</div><div class="s-body"><div class="s-icon">🧪</div><div class="s-ttl">Particles Stored</div><div class="s-desc">Captured carbon accumulates in a sealed, removable collection chamber — heat-resistant, safe to handle, easy to extract.</div></div></div>
+          <div class="step-row"><div class="s-num">4</div><div class="s-body"><div class="s-icon">🖋️</div><div class="s-ttl">Converted to Ink</div><div class="s-desc">Carbon is mixed with a water-based binding agent in a 60:40 ratio to produce high-quality black ink for pens, stamps, and printing.</div></div></div>
+          <div class="step-row"><div class="s-num">5</div><div class="s-body"><div class="s-icon">📡</div><div class="s-ttl">Data Transmitted</div><div class="s-desc">The ESP32 streams all sensor readings via WiFi to this live dashboard — giving real-time visibility into capture performance and air quality.</div></div></div>
+        </div>
+      </div>
+
+      <!-- ── TECHNOLOGY ── -->
+      <div class="tab-panel" id="t-tech">
+        <div class="sh-lbl">TECH STACK</div><div class="sh-ttl">Built With Precision</div><div class="sh-sub">Each component selected for reliability, accuracy, and real-world performance.</div>
+        <div class="tech-grid">
+          <div class="tcrd"><div class="tc-icon">🧠</div><div class="tc-name">ESP32</div><div class="tc-tag">MICROCONTROLLER</div><div class="tc-desc">Dual-core 240MHz with integrated WiFi & Bluetooth 4.2. The central brain of X-CARBON.</div></div>
+          <div class="tcrd"><div class="tc-icon">💨</div><div class="tc-name">MQ-135</div><div class="tc-tag">AIR QUALITY</div><div class="tc-desc">Detects CO₂, NOₓ, NH₃, benzene, smoke. Calibrated to AQI standards.</div></div>
+          <div class="tcrd"><div class="tc-icon">🌡️</div><div class="tc-name">DHT22</div><div class="tc-tag">ENVIRONMENT</div><div class="tc-desc">High-precision temperature (±0.5°C) and humidity (±2%) for environmental calibration.</div></div>
+          <div class="tcrd"><div class="tc-icon">🔬</div><div class="tc-name">Nano-Filter</div><div class="tc-tag">CAPTURE MESH</div><div class="tc-desc">Multi-layer carbon capture mesh with 94% PM2.5 efficiency. Removable cassette design.</div></div>
+          <div class="tcrd"><div class="tc-icon">🌐</div><div class="tc-name">Web Dashboard</div><div class="tc-tag">INTERFACE</div><div class="tc-desc">Real-time web app with live charts, games, AQI alerts, and BT scanner. Zero dependencies.</div></div>
+          <div class="tcrd"><div class="tc-icon">🔋</div><div class="tc-name">Power System</div><div class="tc-tag">12V INPUT</div><div class="tc-desc">Powered from vehicle 12V system with onboard regulation to stable 3.3V for ESP32.</div></div>
+        </div>
+      </div>
+
+      <!-- ── INK PROCESS ── -->
+      <div class="tab-panel" id="t-ink">
+        <div class="sh-lbl">INNOVATION</div><div class="sh-ttl">Carbon → Ink Conversion</div><div class="sh-sub">The unique process that makes X-CARBON different from everything else.</div>
+        <div class="ink-tl">
+          <div class="ink-row"><div class="ink-l"><div class="ink-ico">🚗</div><div class="ink-line"></div></div><div style="padding-top:.3rem"><div class="ink-ttl">Raw Exhaust Input</div><div class="ink-desc">Vehicle exhaust contains carbon soot (PM2.5/PM10), CO, NOₓ, and hydrocarbons. X-CARBON intercepts at the tailpipe.</div><div class="ink-badge">~120mg carbon per 10km</div></div></div>
+          <div class="ink-row"><div class="ink-l"><div class="ink-ico">🌑</div><div class="ink-line"></div></div><div style="padding-top:.3rem"><div class="ink-ttl">Particle Filtration</div><div class="ink-desc">3-layer nano-filter: pre-filter for large particles, electrostatically-charged mesh for PM2.5, HEPA layer for ultra-fine.</div><div class="ink-badge">94% capture efficiency</div></div></div>
+          <div class="ink-row"><div class="ink-l"><div class="ink-ico">⚗️</div><div class="ink-line"></div></div><div style="padding-top:.3rem"><div class="ink-ttl">Chemical Processing</div><div class="ink-desc">Carbon powder mixed with HPMC binder, surfactant, and preservative. Ultrasonically agitated for uniform dispersion.</div><div class="ink-badge">60% carbon · 35% water · 5% additives</div></div></div>
+          <div class="ink-row"><div class="ink-l"><div class="ink-ico">🖋️</div><div class="ink-line"></div></div><div style="padding-top:.3rem"><div class="ink-ttl">Ink Output</div><div class="ink-desc">Smooth, archive-quality black ink. pH-balanced, compatible with standard fountain pen cartridges.</div><div class="ink-badge">~50ml ink per 120mg carbon</div></div></div>
+          <div class="ink-row"><div class="ink-l"><div class="ink-ico">🌱</div></div><div style="padding-top:.3rem"><div class="ink-ttl">Environmental Result</div><div class="ink-desc">Each bottle = pollution that never entered the atmosphere, plus a sellable product from what was pure waste.</div><div class="ink-badge">Zero waste · Circular economy</div></div></div>
+        </div>
+      </div>
+
+      <!-- ── IMPACT ── -->
+      <div class="tab-panel" id="t-impact">
+        <div class="sh-lbl">ENVIRONMENTAL IMPACT</div><div class="sh-ttl">Why It Matters</div><div class="sh-sub">Every journey with X-CARBON makes a measurable difference.</div>
+        <div class="imp-grid">
+          <div class="imp-card"><div class="imp-big">94%</div><div class="imp-name">Capture Rate</div><div class="imp-desc">PM2.5 particles captured before the atmosphere</div></div>
+          <div class="imp-card"><div class="imp-big">0🗑️</div><div class="imp-name">Zero Waste</div><div class="imp-desc">Every particle repurposed into usable ink</div></div>
+          <div class="imp-card"><div class="imp-big">50ml</div><div class="imp-name">Ink / Drive</div><div class="imp-desc">30-min city ride = one full bottle of ink</div></div>
+          <div class="imp-card"><div class="imp-big">♻️</div><div class="imp-name">Circular</div><div class="imp-desc">Pollution in → sustainable product out</div></div>
+        </div>
+        <div style="background:rgba(0,255,136,.03);border:1px solid rgba(0,255,136,.1);border-radius:13px;padding:1.8rem;">
+          <div style="font-family:'Orbitron',monospace;font-size:.95rem;font-weight:700;color:#fff;margin-bottom:.7rem;">🌍 The Bigger Picture</div>
+          <p style="color:var(--muted);font-size:.87rem;line-height:1.8;">India has 9 of the world's 10 most polluted cities. The average two-wheeler emits 8× more particulate pollution than a car per km. X-CARBON targets this directly — and unlike catalytic converters, it doesn't just neutralize pollution. It captures it and converts it into economic value. Scaled to 1% of India's 200 million two-wheelers, X-CARBON could capture over 240 metric tons of carbon soot annually while producing millions of ink bottles.</p>
+        </div>
+      </div>
+
+      <!-- ══ ABOUT ME ══ -->
+      <div class="tab-panel" id="t-about">
+        <div class="sh-lbl">CREATOR</div>
+        <div class="sh-ttl">About Me</div>
+        <div class="sh-sub">The person behind X-CARBON.</div>
+
+        <div class="about-hero">
+          <div class="about-avatar">👨‍💻</div>
+          <div class="about-bio-wrap">
+            <div class="about-name">The X-CARBON Creator</div>
+            <div class="about-role">STUDENT · INNOVATOR · ENVIRONMENTAL ENGINEER</div>
+            <div class="about-bio">I'm a student passionate about using technology to solve real-world environmental problems. X-CARBON started as a science fair idea and grew into a full IoT system that actually works. I believe the best solutions are the ones that create value from waste — turning pollution into something useful is exactly that.</div>
+            <div class="about-tags">
+              <span class="tag">🔌 IoT</span>
+              <span class="tag">🌿 Environment</span>
+              <span class="tag">⚡ ESP32</span>
+              <span class="tag">🧪 Chemistry</span>
+              <span class="tag">💻 Web Dev</span>
+              <span class="tag">🔬 Research</span>
+              <span class="tag">🎮 Gaming</span>
+              <span class="tag">🚀 Innovation</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="about-stats">
+          <div class="astat"><div class="astat-val">94%</div><div class="astat-lbl">Capture Rate</div></div>
+          <div class="astat"><div class="astat-val">1</div><div class="astat-lbl">X-CARBON Built</div></div>
+          <div class="astat"><div class="astat-val">∞</div><div class="astat-lbl">Ideas Per Day</div></div>
+          <div class="astat"><div class="astat-val">☕</div><div class="astat-lbl">Fuel Source</div></div>
+        </div>
+
+        <div class="sh-lbl" style="margin-bottom:1rem;">SKILLS</div>
+        <div class="skills-section" id="skills-section">
+          <div class="skill-row"><div class="skill-label"><span>ESP32 / Arduino</span><span>90%</span></div><div class="skill-bar"><div class="skill-fill" data-width="90"></div></div></div>
+          <div class="skill-row"><div class="skill-label"><span>Environmental Science</span><span>85%</span></div><div class="skill-bar"><div class="skill-fill" data-width="85"></div></div></div>
+          <div class="skill-row"><div class="skill-label"><span>Web Development</span><span>80%</span></div><div class="skill-bar"><div class="skill-fill" data-width="80"></div></div></div>
+          <div class="skill-row"><div class="skill-label"><span>Sensor Integration</span><span>88%</span></div><div class="skill-bar"><div class="skill-fill" data-width="88"></div></div></div>
+          <div class="skill-row"><div class="skill-label"><span>Problem Solving</span><span>95%</span></div><div class="skill-bar"><div class="skill-fill" data-width="95"></div></div></div>
+        </div>
+
+        <div class="sh-lbl" style="margin-bottom:1rem;">JOURNEY</div>
+        <div class="timeline">
+          <div class="tl-item"><div class="tl-dot">💡</div><div class="tl-body"><div class="tl-date">IDEA PHASE</div><div class="tl-ttl">The Spark</div><div class="tl-desc">Saw black exhaust smoke from a bus and thought — what if we could capture that?</div></div></div>
+          <div class="tl-item"><div class="tl-dot">🔬</div><div class="tl-body"><div class="tl-date">RESEARCH</div><div class="tl-ttl">Carbon to Ink</div><div class="tl-desc">Discovered that carbon soot can be processed into ink. Tested with basic materials first.</div></div></div>
+          <div class="tl-item"><div class="tl-dot">⚡</div><div class="tl-body"><div class="tl-date">BUILD PHASE</div><div class="tl-ttl">ESP32 Integration</div><div class="tl-desc">Built the sensor array with ESP32, MQ-135, and DHT22. First successful data reading!</div></div></div>
+          <div class="tl-item"><div class="tl-dot">🌐</div><div class="tl-body"><div class="tl-date">PRESENT</div><div class="tl-ttl">Live Dashboard</div><div class="tl-desc">Full web interface with real-time graphs, BT scanner, games, and live data — you're using it right now.</div></div></div>
+        </div>
+      </div>
+
+      <!-- ══ GAMES ZONE ══ -->
+      <div class="tab-panel" id="t-games">
+        <div class="sh-lbl">🎮 FUN ZONE</div>
+        <div class="sh-ttl">Games Zone</div>
+        <div class="sh-sub">Take a break from data! Three eco-themed games to play.</div>
+
+        <div class="games-grid">
+          <div class="game-card">
+            <div class="game-icon">🐍</div>
+            <div class="game-name">Carbon Snake</div>
+            <div class="game-desc">Control a snake that eats carbon particles. The more pollution you eat, the longer you grow! Don't hit the walls.</div>
+            <button class="game-launch" onclick="openModal('modal-snake');startSnake()">▶ Play Now</button>
+          </div>
+          <div class="game-card">
+            <div class="game-icon">🧩</div>
+            <div class="game-name">Carbon Memory</div>
+            <div class="game-desc">Match pairs of environmental emoji cards. Test your memory! Fewer moves = better score. Beat it in under 20 moves!</div>
+            <button class="game-launch" onclick="openModal('modal-memory');initMemory()">▶ Play Now</button>
+          </div>
+          <div class="game-card">
+            <div class="game-icon">🧠</div>
+            <div class="game-name">Eco Knowledge Quiz</div>
+            <div class="game-desc">8 questions about air pollution, carbon, and the environment. How much do you know? Aim for a perfect score!</div>
+            <button class="game-launch" onclick="openModal('modal-quiz');startQuiz()">▶ Play Now</button>
+          </div>
+        </div>
+
+        <div style="background:var(--card);border:1px solid var(--border);border-radius:14px;padding:1.5rem;margin-top:1rem;">
+          <div style="font-family:'Orbitron',monospace;font-size:.88rem;font-weight:700;color:#fff;margin-bottom:1rem;">🏆 High Scores (This Session)</div>
+          <div id="lb-list">
+            <div class="lb-row"><div class="lb-rank gold">1</div><div class="lb-avatar">🐍</div><div class="lb-name">Carbon Snake</div><div class="lb-score" id="hs-snake">Best: --</div></div>
+            <div class="lb-row"><div class="lb-rank silver">2</div><div class="lb-avatar">🧩</div><div class="lb-name">Memory Game</div><div class="lb-score" id="hs-mem">Best: --</div></div>
+            <div class="lb-row"><div class="lb-rank bronze">3</div><div class="lb-avatar">🧠</div><div class="lb-name">Eco Quiz</div><div class="lb-score" id="hs-quiz">Best: --</div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ FUN EXTRAS ══ -->
+      <div class="tab-panel" id="t-extras">
+        <div class="sh-lbl">✨ EXTRAS</div>
+        <div class="sh-ttl">Fun Stuff</div>
+        <div class="sh-sub">Little extras that make X-CARBON more than just a project.</div>
+
+        <div class="extras-grid">
+
+          <!-- Pollution Fact -->
+          <div class="extra-card">
+            <div class="extra-title">💡 Did You Know?</div>
+            <div class="extra-sub">Random pollution & environment facts</div>
+            <div class="fact-box" id="fact-box">Loading fact…</div>
+            <button class="fact-refresh" onclick="newFact()">🔄 New Fact</button>
+          </div>
+
+          <!-- Carbon Calculator -->
+          <div class="extra-card">
+            <div class="extra-title">🧮 Carbon Calculator</div>
+            <div class="extra-sub">Estimate your carbon capture potential</div>
+            <div class="calc-input-row">
+              <label>Distance (km)</label>
+              <input class="calc-inp" type="number" id="calc-km" value="10" min="1" oninput="calcCarbon()">
+            </div>
+            <div class="calc-input-row">
+              <label>Vehicle</label>
+              <select class="calc-inp" id="calc-veh" onchange="calcCarbon()">
+                <option value="12">Motorbike (12mg/km)</option>
+                <option value="18">Old Scooter (18mg/km)</option>
+                <option value="8">Modern Car (8mg/km)</option>
+                <option value="25">Old Diesel (25mg/km)</option>
+              </select>
+            </div>
+            <div class="calc-result" id="calc-result">Enter values above to calculate</div>
+          </div>
+
+          <!-- Mood Picker -->
+          <div class="extra-card">
+            <div class="extra-title">😊 Today's Mood</div>
+            <div class="extra-sub">How are you feeling about the environment today?</div>
+            <div class="mood-row">
+              <button class="mood-btn" onclick="setMood(this,'😤','Angry about pollution — that fire!')">😤</button>
+              <button class="mood-btn" onclick="setMood(this,'😟','Worried but working on it.')">😟</button>
+              <button class="mood-btn" onclick="setMood(this,'😐','Neutral. Coffee needed.')">😐</button>
+              <button class="mood-btn" onclick="setMood(this,'😊','Hopeful! Solutions exist.')">😊</button>
+              <button class="mood-btn" onclick="setMood(this,'🤩','Excited to change the world!')">🤩</button>
+            </div>
+            <div class="mood-msg" id="mood-msg">Click a mood above ↑</div>
+          </div>
+
+          <!-- Community Poll -->
+          <div class="extra-card">
+            <div class="extra-title">📊 Quick Poll</div>
+            <div class="extra-sub">Which pollutant worries you most?</div>
+            <div id="poll-opts"></div>
+            <button class="poll-vote" onclick="castVote()">Cast Vote</button>
+          </div>
+
+          <!-- Live Weather (simulated) -->
+          <div class="extra-card">
+            <div class="extra-title">🌤️ Local Air Conditions</div>
+            <div class="extra-sub">Simulated environmental readings for your area</div>
+            <div class="weather-box">
+              <div class="weather-icon" id="w-icon">🌫️</div>
+              <div class="weather-info">
+                <div class="weather-temp" id="w-temp">32°C</div>
+                <div class="weather-city">📍 Faridabad, Haryana</div>
+                <div class="weather-desc" id="w-desc">Moderate smog — X-CARBON recommended</div>
+              </div>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:.6rem;margin-top:1rem;">
+              <div style="background:rgba(124,58,237,.08);border:1px solid var(--border);border-radius:8px;padding:.7rem;text-align:center;">
+                <div style="font-family:'Orbitron',monospace;font-size:1.1rem;font-weight:700;color:var(--yellow)" id="w-aqi">142</div>
+                <div style="font-family:'Space Mono',monospace;font-size:.58rem;color:var(--muted);">AQI</div>
+              </div>
+              <div style="background:rgba(124,58,237,.08);border:1px solid var(--border);border-radius:8px;padding:.7rem;text-align:center;">
+                <div style="font-family:'Orbitron',monospace;font-size:1.1rem;font-weight:700;color:var(--blue)" id="w-hum">68%</div>
+                <div style="font-family:'Space Mono',monospace;font-size:.58rem;color:var(--muted);">Humidity</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Motivational Quote -->
+          <div class="extra-card">
+            <div class="extra-title">💬 Eco Quote</div>
+            <div class="extra-sub">Daily inspiration for changemakers</div>
+            <div style="padding:1.2rem;border-radius:10px;background:rgba(124,58,237,.08);border:1px solid var(--border);font-style:italic;color:var(--text);font-size:.88rem;line-height:1.7;position:relative;" id="quote-box">
+              <span style="font-size:2rem;color:var(--p2);line-height:0;vertical-align:-.4em">"</span>
+              <span id="quote-text">Loading…</span>
+              <span style="font-size:2rem;color:var(--p2);line-height:0;vertical-align:-.4em">"</span>
+            </div>
+            <div style="font-family:'Space Mono',monospace;font-size:.62rem;color:var(--neon);margin-top:.6rem;" id="quote-author"></div>
+            <button class="fact-refresh" style="margin-top:.5rem;" onclick="newQuote()">🔄 New Quote</button>
+          </div>
+
+        </div>
+      </div>
+
+    </div><!-- /content-wrap -->
+  </div><!-- /pg-guest -->
+</div><!-- /app -->
+
+<script>
+"use strict";
+
+/* ── SPLASH ── */
+(function(){
+  const cv=document.getElementById('splash-canvas'),ctx=cv.getContext('2d');
+  let W,H,pts=[];
+  function resize(){W=cv.width=innerWidth;H=cv.height=innerHeight;}
+  resize();window.addEventListener('resize',resize);
+  for(let i=0;i<80;i++)pts.push({x:Math.random()*2000,y:Math.random()*1500,vx:(Math.random()-.5)*.3,vy:(Math.random()-.5)*.3,r:Math.random()*2+.4,a:Math.random()*.35+.07});
+  (function draw(){ctx.clearRect(0,0,W,H);pts.forEach(p=>{p.x+=p.vx;p.y+=p.vy;if(p.x<0)p.x=W;if(p.x>W)p.x=0;if(p.y<0)p.y=H;if(p.y>H)p.y=0;ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);ctx.fillStyle=`rgba(168,85,247,${p.a})`;ctx.fill();});requestAnimationFrame(draw);})();
+})();
+
+const SPLASH_MSGS=['INITIALIZING SYSTEM...','LOADING SENSORS...','CALIBRATING AQI MODULE...','CONNECTING ESP32 MODULE...','LOADING GAMES... 🎮','✓ SYSTEM READY — HAVE FUN!'];
+let msgIdx=0;
+const spSt=document.getElementById('sp-st'),spFill=document.getElementById('sp-fill');
+let pct=0;
+const barIv=setInterval(()=>{pct=Math.min(pct+Math.random()*3+1,100);spFill.style.width=pct+'%';if(pct>=100)clearInterval(barIv);},50);
+const msgIv=setInterval(()=>{msgIdx++;if(msgIdx>=SPLASH_MSGS.length){clearInterval(msgIv);return;}spSt.textContent=SPLASH_MSGS[msgIdx];},750);
+setTimeout(()=>{
+  document.getElementById('splash').classList.add('hide');
+  document.getElementById('app').style.display='block';
+  document.getElementById('egg-btn').style.display='flex';
+  setTimeout(()=>document.getElementById('splash').style.display='none',900);
+},4500);
+
+/* ── HERO CANVAS ── */
+(function(){
+  const cv=document.getElementById('hero-canvas'),ctx=cv.getContext('2d');
+  let W,H,pts=[];
+  function resize(){W=cv.width=cv.offsetWidth;H=cv.height=cv.offsetHeight;}
+  window.addEventListener('resize',resize);
+  for(let i=0;i<110;i++)pts.push({x:Math.random()*2000,y:Math.random()*1000,vx:(Math.random()-.5)*.25,vy:-Math.random()*.4-.05,r:Math.random()*1.5+.3,a:Math.random()*.22+.04});
+  (function draw(){if(!cv.offsetWidth){requestAnimationFrame(draw);return;}if(!W)resize();ctx.clearRect(0,0,W,H);pts.forEach(p=>{p.x+=p.vx;p.y+=p.vy;if(p.y<0){p.y=H;p.x=Math.random()*W;}if(p.x<0)p.x=W;if(p.x>W)p.x=0;ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);ctx.fillStyle=`rgba(168,85,247,${p.a})`;ctx.fill();});requestAnimationFrame(draw);})();
+})();
+
+/* ── PAGE NAV ── */
+function goTo(id){document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));const pg=document.getElementById(id);if(pg){pg.classList.add('active');window.scrollTo(0,0);}}
+function goGuest(){goTo('pg-guest');setTimeout(startDemo,100);setTimeout(initExtras,300);}
+window.goTo=goTo;window.goGuest=goGuest;
+
+/* ── BT SCANNER ── */
+const BT_DEVICES=[
+  {name:'X-CARBON ESP32 #A1',id:'E8:DB:84:A1:F3:2C',icon:'📡',sig:'-52 dBm ●●●●',type:'X-CARBON Device'},
+  {name:'X-CARBON ESP32 #B2',id:'3C:71:BF:B2:E9:11',icon:'📡',sig:'-71 dBm ●●●○',type:'X-CARBON Device'},
+  {name:'HC-05 Bluetooth',   id:'00:14:03:05:1A:33',icon:'🔵',sig:'-84 dBm ●●○○',type:'Generic BT'},
+  {name:'ESP32-CAM Module',  id:'7C:9E:BD:F0:A2:44',icon:'📷',sig:'-78 dBm ●●●○',type:'ESP32 Device'},
+];
+let btScanning=false;
+function btScan(){
+  if(btScanning)return;btScanning=true;
+  const btn=document.getElementById('bt-btn'),bd=document.getElementById('bd'),txt=document.getElementById('bt-txt'),wave=document.getElementById('bt-wave'),list=document.getElementById('bt-list');
+  btn.textContent='SCANNING...';btn.disabled=true;bd.className='bdot scanning';txt.style.color='var(--yellow)';txt.textContent='Scanning for devices…';wave.className='bt-wave active';list.innerHTML='<div class="bt-empty">Searching for nearby Bluetooth devices…</div>';
+  let found=0;
+  BT_DEVICES.forEach((dev,i)=>{
+    setTimeout(()=>{
+      if(found===0)list.innerHTML='';found++;
+      const el=document.createElement('div');el.className='bt-dev';el.style.animationDelay=(i*.05)+'s';
+      el.innerHTML=`<div class="bt-dev-l"><div class="bt-dev-icon">${dev.icon}</div><div><div class="bt-dev-name">${dev.name}</div><div class="bt-dev-id">${dev.id} · ${dev.type}</div></div></div><div class="bt-dev-r"><div class="bt-sig">${dev.sig}</div><button class="bt-conn-btn" onclick="connectDev(this,'${dev.name}')">Connect</button></div>`;
+      list.appendChild(el);txt.textContent=`Found ${found} device${found>1?'s':''}…`;
+    },900+i*650);
+  });
+  const total=900+BT_DEVICES.length*650+500;
+  setTimeout(()=>{btn.textContent='⟳ RESCAN';btn.disabled=false;bd.className='bdot done';txt.style.color='var(--green)';txt.textContent=`Scan complete — ${BT_DEVICES.length} devices found`;wave.className='bt-wave idle';btScanning=false;},total);
+}
+function connectDev(btn,name){
+  btn.textContent='Connecting…';btn.disabled=true;btn.className='bt-conn-btn connecting';
+  setTimeout(()=>{btn.textContent='✓ Connected';btn.className='bt-conn-btn connected';const ok=document.getElementById('bt-ok');ok.style.display='block';ok.textContent=`✅ Connected to ${name} — Redirecting to Live Dashboard…`;setTimeout(()=>goGuest(),2000);},1800);
+}
+window.btScan=btScan;window.connectDev=connectDev;
+
+/* ── TABS ── */
+const TAB_META={'t-dash':{title:'Dashboard',sub:'Real-time sensor readings'},'t-graphs':{title:'Live Graphs',sub:'30-point rolling analytics'},'t-log':{title:'Data Log',sub:'Full session history'},'t-how':{title:'How It Works',sub:'System process overview'},'t-tech':{title:'Technology',sub:'Hardware & software stack'},'t-ink':{title:'Ink Process',sub:'Carbon to ink conversion'},'t-impact':{title:'Impact',sub:'Environmental contribution'},'t-about':{title:'About Me',sub:'The person behind X-CARBON'},'t-games':{title:'🎮 Games Zone',sub:'Take a break — play a game!'},'t-extras':{title:'✨ Fun Extras',sub:'Calculators, facts & more'}};
+function switchTab(id,btn){
+  document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById(id).classList.add('active');if(btn)btn.classList.add('active');
+  const m=TAB_META[id]||{};document.getElementById('tb-title').textContent=m.title||'';document.getElementById('tb-sub').textContent=m.sub||'';
+  setTimeout(animateSteps,80);
+  if(id==='t-about')setTimeout(animateSkills,200);
+}
+function toggleSB(){document.getElementById('sidebar').classList.toggle('mob-open');}
+window.switchTab=switchTab;window.toggleSB=toggleSB;
+
+/* ── CHART ENGINE ── */
+function makeChart(id,lineColor,gradColor,maxPts){
+  const cv=document.getElementById(id);if(!cv)return()=>{};
+  const ctx=cv.getContext('2d');const MAX=maxPts||25;let data=[];
+  (function draw(){
+    requestAnimationFrame(draw);
+    const W=cv.width=cv.offsetWidth,H=cv.height=parseInt(cv.getAttribute('height'))||160;
+    ctx.clearRect(0,0,W,H);if(data.length<2)return;
+    const PAD={t:16,r:14,b:26,l:42},gW=W-PAD.l-PAD.r,gH=H-PAD.t-PAD.b;
+    const mn=Math.min(...data)*.9,mx=Math.max(...data)*1.08||1;
+    ctx.strokeStyle='rgba(168,85,247,.1)';ctx.lineWidth=1;
+    for(let i=0;i<=3;i++){const y=PAD.t+gH*(i/3);ctx.beginPath();ctx.moveTo(PAD.l,y);ctx.lineTo(W-PAD.r,y);ctx.stroke();ctx.fillStyle='rgba(157,143,188,.55)';ctx.font='9px Space Mono,monospace';ctx.textAlign='right';ctx.fillText((mx-(mx-mn)*(i/3)).toFixed(1),PAD.l-4,y+3.5);}
+    function xp(i){return PAD.l+gW*(i/(MAX-1));}function yp(v){return PAD.t+gH*(1-(v-mn)/(mx-mn));}
+    const grad=ctx.createLinearGradient(0,PAD.t,0,PAD.t+gH);grad.addColorStop(0,gradColor+'35');grad.addColorStop(1,gradColor+'00');
+    ctx.beginPath();data.forEach((v,i)=>i===0?ctx.moveTo(xp(i),yp(v)):ctx.lineTo(xp(i),yp(v)));ctx.lineTo(xp(data.length-1),PAD.t+gH);ctx.lineTo(xp(0),PAD.t+gH);ctx.closePath();ctx.fillStyle=grad;ctx.fill();
+    ctx.beginPath();ctx.strokeStyle=lineColor;ctx.lineWidth=2;ctx.shadowColor=lineColor;ctx.shadowBlur=6;data.forEach((v,i)=>i===0?ctx.moveTo(xp(i),yp(v)):ctx.lineTo(xp(i),yp(v)));ctx.stroke();ctx.shadowBlur=0;
+    const lx=xp(data.length-1),ly=yp(data[data.length-1]);ctx.beginPath();ctx.arc(lx,ly,4,0,Math.PI*2);ctx.fillStyle=lineColor;ctx.shadowColor=lineColor;ctx.shadowBlur=12;ctx.fill();ctx.shadowBlur=0;
+  })();
+  return v=>{data.push(v);if(data.length>MAX)data.shift();};
+}
+
+/* ── DEMO DATA ── */
+let totalC=0,totalI=0,logRows=[],rowN=0,demoStarted=false;
+let pc,pa,pgc,pga,pgi,pgr;
+function startDemo(){
+  if(demoStarted)return;demoStarted=true;
+  pc=makeChart('c-dash-c','#a855f7','rgba(168,85,247',22);pa=makeChart('c-dash-a','#00ff88','rgba(0,255,136',22);
+  pgc=makeChart('c-big-c','#a855f7','rgba(168,85,247',30);pga=makeChart('c-big-a','#00ff88','rgba(0,255,136',30);
+  pgi=makeChart('c-big-i','#e879f9','rgba(232,121,249',30);pgr=makeChart('c-big-r','#38bdf8','rgba(56,189,248',30);
+  for(let i=0;i<14;i++){const c=Math.random()*18+4,a=Math.random()*65+25;totalC+=c;totalI=totalC*.42;[pc,pa,pgc,pga,pgi,pgr].forEach((fn,idx)=>fn&&fn([totalC,a,totalC,a,totalI,c][idx]));}
+  tick();setInterval(tick,2800);
+}
+function tick(){
+  const rate=Math.random()*9+2,aqi=Math.floor(Math.random()*130+22);
+  totalC+=rate;totalI=totalC*.42;
+  animNum('v-c',totalC,'mg');animNum('v-i',totalI,'ml');
+  const va=document.getElementById('v-a'),tra=document.getElementById('tr-a');
+  va.textContent=aqi;
+  if(aqi<50){va.style.color='var(--green)';tra.textContent='✅ Good Air Quality';tra.style.color='var(--green)';}
+  else if(aqi<100){va.style.color='var(--yellow)';tra.textContent='⚠️ Moderate — Capturing';tra.style.color='var(--yellow)';}
+  else{va.style.color='var(--red)';tra.textContent='🚨 Unhealthy — Alert!';tra.style.color='var(--red)';}
+  document.getElementById('tr-c').textContent=`↑ +${rate.toFixed(1)} mg this cycle`;document.getElementById('tr-c').style.color='var(--green)';
+  document.getElementById('tr-i').textContent=`↑ +${(rate*.42).toFixed(2)} ml this cycle`;document.getElementById('tr-i').style.color='var(--green)';
+  document.getElementById('b-c').style.width=Math.min(totalC/500*100,100)+'%';document.getElementById('b-i').style.width=Math.min(totalI/200*100,100)+'%';document.getElementById('b-a').style.width=Math.min(aqi/200*100,100)+'%';
+  document.getElementById('aqi-alert').style.display=aqi>=100?'block':'none';
+  if(pc)pc(totalC);if(pa)pa(aqi);if(pgc)pgc(totalC);if(pga)pga(aqi);if(pgi)pgi(totalI);if(pgr)pgr(rate);
+  rowN++;const now=new Date(),ts=`${p2(now.getHours())}:${p2(now.getMinutes())}:${p2(now.getSeconds())}`;
+  const status=aqi<50?'Normal':aqi<100?'Moderate':'⚠ Alert',sc=aqi<50?'var(--green)':aqi<100?'var(--yellow)':'var(--red)';
+  logRows.unshift({n:rowN,ts,c:totalC.toFixed(1),i:totalI.toFixed(2),a:aqi,r:rate.toFixed(1),s:status,sc});
+  if(logRows.length>20)logRows.pop();
+  const tb=document.getElementById('log-tbody');if(tb)tb.innerHTML=logRows.map(r=>`<tr><td style="color:var(--muted)">#${r.n}</td><td>${r.ts}</td><td style="color:var(--neon)">${r.c}</td><td style="color:var(--neon2)">${r.i}</td><td style="color:${r.sc}">${r.a}</td><td style="color:var(--blue)">${r.r}</td><td style="color:${r.sc}">${r.s}</td></tr>`).join('');
+  const bdg=document.getElementById('bdg-log');if(bdg)bdg.textContent=logRows.length;
+}
+function animNum(id,target,unit){const el=document.getElementById(id);if(!el)return;const cur=parseFloat(el.textContent)||0,steps=20,step=(target-cur)/steps;let i=0;const t=setInterval(()=>{i++;el.innerHTML=(cur+step*i).toFixed(1)+'<small>'+unit+'</small>';if(i>=steps){el.innerHTML=target.toFixed(1)+'<small>'+unit+'</small>';clearInterval(t);}},35);}
+function p2(n){return String(n).padStart(2,'0');}
+
+/* ── SCROLL ANIMATIONS ── */
+function animateSteps(){document.querySelectorAll('.step-row,.ink-row').forEach((el,i)=>setTimeout(()=>el.classList.add('vis'),i*110));}
+function animateSkills(){document.querySelectorAll('.skill-fill').forEach(el=>{setTimeout(()=>el.style.width=el.dataset.width+'%',200);});}
+new IntersectionObserver(es=>{es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('vis');}});},{threshold:.08}).observe&&document.querySelectorAll('.step-row,.ink-row').forEach(el=>new IntersectionObserver(es=>{es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('vis');}});},{threshold:.08}).observe(el));
+
+/* ════════════════════════════════════════════════
+   🐍 SNAKE GAME
+════════════════════════════════════════════════ */
+let snakeInterval,snake,food,dir,nextDir,snakeScore=0,snakeRunning=false,snakeBest=0;
+const COLS=18,ROWS=15,SZ=20;
+function startSnake(){
+  snake=[{x:9,y:7},{x:8,y:7},{x:7,y:7}];dir={x:1,y:0};nextDir={x:1,y:0};snakeScore=0;snakeRunning=true;
+  placeFood();clearInterval(snakeInterval);snakeInterval=setInterval(snakeStep,130);
+  document.getElementById('snake-score').textContent=0;
+  document.addEventListener('keydown',snakeKey);
+}
+function snakeKey(e){const map={ArrowUp:{x:0,y:-1},ArrowDown:{x:0,y:1},ArrowLeft:{x:-1,y:0},ArrowRight:{x:1,y:0}};if(map[e.key]){e.preventDefault();const d=map[e.key];if(d.x!==-dir.x||d.y!==-dir.y)nextDir=d;}}
+function snakeDir(dx,dy){const d={x:dx,y:dy};if(d.x!==-dir.x||d.y!==-dir.y)nextDir=d;}
+function placeFood(){food={x:Math.floor(Math.random()*COLS),y:Math.floor(Math.random()*ROWS)};}
+function snakeStep(){
+  dir=nextDir;
+  const head={x:snake[0].x+dir.x,y:snake[0].y+dir.y};
+  if(head.x<0||head.x>=COLS||head.y<0||head.y>=ROWS||snake.some(s=>s.x===head.x&&s.y===head.y)){
+    clearInterval(snakeInterval);snakeRunning=false;document.removeEventListener('keydown',snakeKey);
+    if(snakeScore>snakeBest){snakeBest=snakeScore;document.getElementById('hs-snake').textContent=`Best: ${snakeBest}`;}
+    drawSnake(true);return;
+  }
+  snake.unshift(head);
+  if(head.x===food.x&&head.y===food.y){snakeScore+=10;document.getElementById('snake-score').textContent=snakeScore;placeFood();}
+  else snake.pop();
+  drawSnake(false);
+}
+function drawSnake(dead){
+  const cv=document.getElementById('snake-canvas'),ctx=cv.getContext('2d');
+  ctx.fillStyle='#07020f';ctx.fillRect(0,0,cv.width,cv.height);
+  // grid
+  ctx.strokeStyle='rgba(168,85,247,.06)';ctx.lineWidth=1;
+  for(let x=0;x<=COLS;x++){ctx.beginPath();ctx.moveTo(x*SZ,0);ctx.lineTo(x*SZ,ROWS*SZ);ctx.stroke();}
+  for(let y=0;y<=ROWS;y++){ctx.beginPath();ctx.moveTo(0,y*SZ);ctx.lineTo(COLS*SZ,y*SZ);ctx.stroke();}
+  // food
+  ctx.font=`${SZ-2}px serif`;ctx.textAlign='center';ctx.textBaseline='middle';
+  ctx.fillText('🌑',food.x*SZ+SZ/2,food.y*SZ+SZ/2);
+  // snake
+  snake.forEach((s,i)=>{
+    ctx.fillStyle=dead?'rgba(255,61,107,.6)':i===0?'#c084fc':'rgba(168,85,247,'+(1-.03*i)+')';
+    ctx.shadowColor=dead?'var(--red)':'var(--neon)';ctx.shadowBlur=i===0?12:4;
+    ctx.fillRect(s.x*SZ+1,s.y*SZ+1,SZ-2,SZ-2);
+  });
+  ctx.shadowBlur=0;
+  if(dead){ctx.fillStyle='rgba(255,255,255,.9)';ctx.font='bold 18px Orbitron,monospace';ctx.textAlign='center';ctx.fillText(`GAME OVER — Score: ${snakeScore}`,cv.width/2,cv.height/2);}
+}
+window.startSnake=startSnake;window.snakeDir=snakeDir;
+
+/* ════════════════════════════════════════════════
+   🧩 MEMORY GAME
+════════════════════════════════════════════════ */
+const MEM_EMOJIS=['🌿','♻️','💧','🌍','☀️','🌱','🌬️','🔋'];
+let memCards=[],memFlipped=[],memMatched=0,memMoves=0,memTimer=null,memSecs=0,memBest=null;
+function initMemory(){
+  clearInterval(memTimer);memFlipped=[];memMatched=0;memMoves=0;memSecs=0;
+  document.getElementById('mem-moves').textContent=0;document.getElementById('mem-pairs').textContent=0;document.getElementById('mem-time').textContent='Time: 0s';
+  const pairs=[...MEM_EMOJIS,...MEM_EMOJIS].sort(()=>Math.random()-.5);
+  const grid=document.getElementById('memory-grid');grid.innerHTML='';memCards=[];
+  pairs.forEach((em,i)=>{
+    const card=document.createElement('div');card.className='mem-card hidden-face';card.dataset.emoji=em;card.dataset.idx=i;card.textContent=em;
+    card.addEventListener('click',()=>flipCard(card));grid.appendChild(card);memCards.push(card);
+  });
+  memTimer=setInterval(()=>{memSecs++;document.getElementById('mem-time').textContent=`Time: ${memSecs}s`;},1000);
+}
+function flipCard(card){
+  if(card.classList.contains('matched')||memFlipped.length===2)return;
+  if(memFlipped.includes(card))return;
+  card.classList.remove('hidden-face');card.classList.add('flipped');memFlipped.push(card);
+  if(memFlipped.length===2){
+    memMoves++;document.getElementById('mem-moves').textContent=memMoves;
+    if(memFlipped[0].dataset.emoji===memFlipped[1].dataset.emoji){
+      memFlipped.forEach(c=>c.classList.add('matched'));memMatched++;document.getElementById('mem-pairs').textContent=memMatched;memFlipped=[];
+      if(memMatched===8){clearInterval(memTimer);const score=`${memMoves} moves / ${memSecs}s`;if(!memBest)memBest=score;document.getElementById('hs-mem').textContent=`Best: ${memBest}`;}
+    } else {
+      setTimeout(()=>{memFlipped.forEach(c=>{c.classList.remove('flipped');c.classList.add('hidden-face');});memFlipped=[];},900);
+    }
+  }
+}
+window.initMemory=initMemory;
+
+/* ════════════════════════════════════════════════
+   🧠 ECO QUIZ
+════════════════════════════════════════════════ */
+const QUIZ_Q=[
+  {q:"What does AQI stand for?",opts:["Air Quality Index","Average Quantity Indicator","Atmospheric Quantum Index","Air Quantity Instrument"],ans:0,exp:"AQI = Air Quality Index. It measures how clean or polluted the air is."},
+  {q:"What is PM2.5?",opts:["A type of plant","Particulate matter 2.5 micrometers or smaller","A sensor model","A carbon filter grade"],ans:1,exp:"PM2.5 are tiny particles ≤2.5μm — small enough to enter your lungs and bloodstream."},
+  {q:"X-CARBON captures carbon with what efficiency?",opts:["75%","88%","94%","99%"],ans:2,exp:"X-CARBON's nano-filter achieves 94% PM2.5 capture efficiency."},
+  {q:"Which gas does the MQ-135 sensor NOT detect?",opts:["CO₂","Benzene","Helium","NOₓ"],ans:2,exp:"MQ-135 detects CO₂, NOₓ, NH₃, benzene and smoke — but not helium (inert gas)."},
+  {q:"What AQI level is considered 'Unhealthy'?",opts:["Above 50","Above 100","Above 150","Above 200"],ans:1,exp:"AQI above 100 is considered Unhealthy for sensitive groups. Above 150 is unhealthy for all."},
+  {q:"Carbon captured by X-CARBON is converted into what?",opts:["Fuel","Fertilizer","Ink","Plastic"],ans:2,exp:"X-CARBON mixes carbon soot with a binding agent to produce usable black ink!"},
+  {q:"India has how many of the world's 10 most polluted cities?",opts:["3","6","9","All 10"],ans:2,exp:"India has 9 of the world's 10 most polluted cities, making solutions like X-CARBON critical."},
+  {q:"The ESP32 microcontroller runs at what speed?",opts:["80MHz","120MHz","240MHz","500MHz"],ans:2,exp:"ESP32 has dual cores running at up to 240MHz — plenty of power for IoT applications."},
+];
+let qIdx=0,qScore=0,qBest=0,qAnswered=false;
+function startQuiz(){qIdx=0;qScore=0;qAnswered=false;renderQuiz();}
+function renderQuiz(){
+  const cont=document.getElementById('quiz-content');
+  if(qIdx>=QUIZ_Q.length){
+    const pct=Math.round(qScore/QUIZ_Q.length*100);if(qScore>qBest)qBest=qScore;document.getElementById('hs-quiz').textContent=`Best: ${qBest}/${QUIZ_Q.length}`;
+    cont.innerHTML=`<div class="quiz-score-big"><div class="num">${qScore}/${QUIZ_Q.length}</div><div style="font-size:2rem;margin:.5rem 0">${pct>=80?'🎉':pct>=50?'👍':'📚'}</div><p>${pct>=80?'Excellent! You really know your environmental science!':pct>=50?'Good job! Keep learning about pollution.':'Keep studying — the planet needs you!'}</p><button class="btn-sm" style="margin-top:1.2rem" onclick="startQuiz()">🔄 Play Again</button></div>`;
+    document.getElementById('quiz-prog').textContent='Complete!';document.getElementById('quiz-pts').textContent=`Score: ${qScore}/${QUIZ_Q.length}`;document.getElementById('quiz-bar-fill').style.width='100%';
+    return;
+  }
+  const q=QUIZ_Q[qIdx];qAnswered=false;
+  document.getElementById('quiz-prog').textContent=`Question ${qIdx+1} of ${QUIZ_Q.length}`;document.getElementById('quiz-pts').textContent=`Score: ${qScore}`;document.getElementById('quiz-bar-fill').style.width=((qIdx/QUIZ_Q.length)*100)+'%';
+  cont.innerHTML=`<div class="quiz-q">${q.q}</div><div class="quiz-opts">${q.opts.map((o,i)=>`<button class="quiz-opt" onclick="answerQuiz(${i},this)">${o}</button>`).join('')}</div><div class="quiz-feedback" id="q-fb"></div><div style="text-align:right;margin-top:1rem;display:none" id="q-next"><button class="btn-sm" onclick="nextQ()">Next →</button></div>`;
+}
+function answerQuiz(i,btn){
+  if(qAnswered)return;qAnswered=true;
+  const q=QUIZ_Q[qIdx],fb=document.getElementById('q-fb');
+  document.querySelectorAll('.quiz-opt').forEach(b=>b.style.pointerEvents='none');
+  if(i===q.ans){btn.classList.add('correct');qScore++;fb.className='quiz-feedback good';fb.textContent='✅ Correct! '+q.exp;}
+  else{btn.classList.add('wrong');document.querySelectorAll('.quiz-opt')[q.ans].classList.add('correct');fb.className='quiz-feedback bad';fb.textContent='❌ Not quite. '+q.exp;}
+  document.getElementById('quiz-pts').textContent=`Score: ${qScore}`;document.getElementById('q-next').style.display='block';
+}
+function nextQ(){qIdx++;renderQuiz();}
+window.startQuiz=startQuiz;window.answerQuiz=answerQuiz;window.nextQ=nextQ;
+
+/* ── MODALS ── */
+function openModal(id){document.getElementById(id).classList.add('open');}
+function closeModal(id){document.getElementById(id).classList.remove('open');if(id==='modal-snake'){clearInterval(snakeInterval);snakeRunning=false;document.removeEventListener('keydown',snakeKey);}}
+window.openModal=openModal;window.closeModal=closeModal;
+
+/* ════════════════════════════════════════════════
+   ✨ FUN EXTRAS
+════════════════════════════════════════════════ */
+const FACTS=[
+  "🌍 Air pollution causes over 7 million premature deaths per year globally.",
+  "🏍️ A typical Indian two-wheeler emits 8× more particulate matter than a modern car per km.",
+  "🖋️ Ancient Romans made ink from soot and gum arabic — X-CARBON revives this 2000-year-old idea!",
+  "💨 PM2.5 particles are 30× smaller than a human hair — small enough to enter your bloodstream.",
+  "🌱 A single mature tree absorbs ~22kg of CO₂ per year. X-CARBON can beat that in a week.",
+  "🔬 Carbon black (soot) has been used in ink-making for over 3,500 years.",
+  "🌐 India's National Clean Air Programme aims to reduce PM2.5 by 40% by 2026.",
+  "⚡ The ESP32 chip that powers X-CARBON was released by Espressif in 2016 and changed IoT forever.",
+  "🏭 Vehicles are responsible for ~30% of urban air pollution in Indian cities.",
+  "♻️ X-CARBON creates a circular economy — pollution literally becomes a product.",
+];
+const QUOTES=[
+  {text:"The Earth does not belong to us, we belong to the Earth.",author:"— Chief Seattle"},
+  {text:"We do not inherit the earth from our ancestors; we borrow it from our children.",author:"— Native American Proverb"},
+  {text:"The greatest threat to our planet is the belief that someone else will save it.",author:"— Robert Swan"},
+  {text:"In every walk with nature, one receives far more than he seeks.",author:"— John Muir"},
+  {text:"What we are doing to the forests of the world is but a mirror reflection of what we are doing to ourselves.",author:"— Mahatma Gandhi"},
+  {text:"The environment is where we all meet, where we all have a mutual interest.",author:"— Lady Bird Johnson"},
+  {text:"Act as if what you do makes a difference. It does.",author:"— William James"},
+];
+let factIdx=0,quoteIdx=0;
+const POLL_DATA=[{label:'Carbon Soot (PM2.5)',votes:42},{label:'Nitrogen Dioxide',votes:28},{label:'Carbon Monoxide',votes:18},{label:'Ground Ozone',votes:12}];
+let pollVoted=false,pollChoice=-1;
+
+function initExtras(){
+  factIdx=Math.floor(Math.random()*FACTS.length);quoteIdx=Math.floor(Math.random()*QUOTES.length);
+  newFact();newQuote();calcCarbon();renderPoll();simulateWeather();
+}
+function newFact(){const fb=document.getElementById('fact-box');if(fb){factIdx=(factIdx+1)%FACTS.length;fb.textContent=FACTS[factIdx];}}
+function newQuote(){const qb=document.getElementById('quote-text'),qa=document.getElementById('quote-author');if(qb){quoteIdx=(quoteIdx+1)%QUOTES.length;qb.textContent=QUOTES[quoteIdx].text;qa.textContent=QUOTES[quoteIdx].author;}}
+function calcCarbon(){
+  const km=parseFloat(document.getElementById('calc-km')?.value)||10;
+  const rate=parseFloat(document.getElementById('calc-veh')?.value)||12;
+  const c=km*rate,ink=(c*.42).toFixed(1),trees=(c/22000).toFixed(4);
+  const res=document.getElementById('calc-result');
+  if(res)res.innerHTML=`🌑 Carbon captured: <strong style="color:var(--neon)">${c.toFixed(0)} mg</strong><br>🖋️ Ink produced: <strong style="color:var(--neon2)">${ink} ml</strong><br>🌳 Equivalent to: <strong style="color:var(--green)">${trees} trees / day</strong>`;
+}
+function setMood(btn,emoji,msg){document.querySelectorAll('.mood-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');const m=document.getElementById('mood-msg');if(m)m.textContent=`${emoji} ${msg}`;}
+function renderPoll(){
+  const total=POLL_DATA.reduce((a,b)=>a+b.votes,0);
+  const cont=document.getElementById('poll-opts');if(!cont)return;
+  cont.innerHTML=POLL_DATA.map((o,i)=>`
+    <div class="poll-opt" onclick="selectPoll(${i})" id="poll-opt-${i}">
+      <span class="poll-label">${o.label}</span>
+      <div class="poll-bar-wrap"><div class="poll-fill" style="width:${Math.round(o.votes/total*100)}%"></div></div>
+      <span class="poll-pct">${Math.round(o.votes/total*100)}%</span>
+    </div>`).join('');
+}
+function selectPoll(i){if(pollVoted)return;pollChoice=i;document.querySelectorAll('.poll-opt').forEach((el,j)=>el.style.opacity=j===i?'1':'.5');}
+function castVote(){
+  if(pollVoted||pollChoice<0)return;pollVoted=true;POLL_DATA[pollChoice].votes+=1;
+  renderPoll();document.querySelector('.poll-vote').textContent='✅ Voted! Thanks!';
+}
+const WEATHER_CONDITIONS=[
+  {icon:'🌫️',desc:'Moderate smog — X-CARBON recommended',aqiBase:130},
+  {icon:'☁️',desc:'Overcast with pollutants',aqiBase:90},
+  {icon:'🌤️',desc:'Partly cloudy, good conditions',aqiBase:55},
+  {icon:'⛅',desc:'Mixed conditions, moderate AQI',aqiBase:80},
+];
+function simulateWeather(){
+  const w=WEATHER_CONDITIONS[Math.floor(Math.random()*WEATHER_CONDITIONS.length)];
+  const aqi=w.aqiBase+Math.floor(Math.random()*30-10);
+  const temp=28+Math.floor(Math.random()*8),hum=55+Math.floor(Math.random()*25);
+  const wi=document.getElementById('w-icon'),wt=document.getElementById('w-temp'),wd=document.getElementById('w-desc'),wa=document.getElementById('w-aqi'),wh=document.getElementById('w-hum');
+  if(wi)wi.textContent=w.icon;if(wt)wt.textContent=temp+'°C';if(wd)wd.textContent=w.desc;if(wa){wa.textContent=aqi;wa.style.color=aqi<50?'var(--green)':aqi<100?'var(--yellow)':'var(--red)';}if(wh)wh.textContent=hum+'%';
+  setTimeout(simulateWeather,15000);
+}
+window.newFact=newFact;window.newQuote=newQuote;window.calcCarbon=calcCarbon;window.setMood=setMood;window.castVote=castVote;window.selectPoll=selectPoll;
+
+/* ── SKILL BARS ── */
+function animateSkills(){document.querySelectorAll('.skill-fill').forEach(el=>{setTimeout(()=>{el.style.width=el.dataset.width+'%';},200);});}
+
+/* ── EASTER EGG ── */
+function easterEgg(){
+  const colors=['#c084fc','#e879f9','#7c3aed','#00ff88','#38bdf8','#fbbf24','#fb923c'];
+  for(let i=0;i<60;i++){
+    const el=document.createElement('div');el.className='confetti-piece';
+    el.style.cssText=`left:${Math.random()*100}vw;top:-10px;background:${colors[Math.floor(Math.random()*colors.length)]};transform:rotate(${Math.random()*360}deg);animation-duration:${Math.random()*2+1.5}s;animation-delay:${Math.random()*.5}s;border-radius:${Math.random()>0.5?'50%':'2px'};width:${Math.random()*8+5}px;height:${Math.random()*8+5}px;`;
+    document.body.appendChild(el);setTimeout(()=>el.remove(),3000);
+  }
+  setTimeout(()=>{alert('🥚 Easter Egg Found!\n\nYou discovered a hidden secret in X-CARBON!\n\n"Turning Pollution Into Ink — and Fun Into Code" 🖋️');},300);
+}
+window.easterEgg=easterEgg;
+
+/* ════════════════════════════════════════════════
+   🤖 X-BOT CHATBOT (AI-powered via Anthropic API)
+════════════════════════════════════════════════ */
+(function(){
+  const SYSTEM_PROMPT = `You are X-BOT, the friendly and enthusiastic AI assistant for X-CARBON — an innovative environmental IoT project that captures carbon soot from vehicle exhaust and converts it into high-quality ink.
+
+Talk in a warm, engaging, slightly excited tone — like a passionate student showing off their science project. Use relevant emojis naturally. Keep responses concise but informative (2-4 sentences usually). Occasionally reference cool stats.
+
+KEY FACTS ABOUT X-CARBON:
+- X-CARBON attaches to vehicle exhaust pipes and captures carbon soot (PM2.5/PM10) particles
+- Uses a 3-layer nano-filter mesh with 94% capture efficiency
+- Converts captured carbon into ink: 60% carbon + 35% water + 5% additives (HPMC binder, surfactant, preservative)
+- Produces ~50ml ink per 120mg carbon (approx. one 30-min city ride)
+- A typical Indian motorbike emits ~12mg carbon per km; old diesel ~25mg/km
+- The ink is archive-quality, pH-balanced, compatible with fountain pen cartridges
+
+TECHNOLOGY STACK:
+- ESP32 microcontroller (dual-core 240MHz, WiFi + Bluetooth 4.2)
+- MQ-135 sensor: detects CO₂, NOₓ, NH₃, benzene, smoke, calibrated to AQI standards
+- DHT22 sensor: temperature (±0.5°C) and humidity (±2%) for environmental calibration
+- 12V vehicle power input regulated to 3.3V for ESP32
+- Real-time data streamed via WiFi to the web dashboard
+- Live graphs, AQI alerts, Bluetooth scanner, and games all built into the dashboard
+
+ENVIRONMENTAL IMPACT:
+- India has 9 of the world's 10 most polluted cities
+- 94% capture rate — carbon that never reaches the atmosphere
+- Creates a circular economy: pollution → product
+- Zero waste — every particle repurposed
+- Scaled to 1% of India's 200M two-wheelers = 240+ metric tons of carbon soot captured annually
+- India's National Clean Air Programme targets 40% PM2.5 reduction by 2026
+
+HOW IT WORKS (5 steps):
+1. Exhaust enters via sealed tailpipe adapter
+2. Carbon captured by nano-filter (94% efficiency)
+3. Particles stored in removable collection chamber
+4. Carbon mixed with water-based binder → ink
+5. ESP32 streams all data live to dashboard
+
+CREATOR: A student passionate about IoT and environmental engineering. Started as a science fair idea.
+
+If someone asks about the live data, mention that the demo dashboard shows simulated real-time readings. If they ask about connecting a device, they need an ESP32-based X-CARBON unit. Be enthusiastic and proud of the project!`;
+
+  let chatHistory = [];
+  let chatOpen = false;
+  let chatReady = false;
+
+  function getTime(){
+    const d = new Date();
+    return d.getHours().toString().padStart(2,'0')+':'+d.getMinutes().toString().padStart(2,'0');
+  }
+
+  function appendMsg(role, text){
+    const msgs = document.getElementById('chat-msgs');
+    const typing = document.getElementById('chat-typing');
+    const div = document.createElement('div');
+    div.className = 'cmsg ' + role;
+    div.innerHTML = `<div class="cmsg-bubble">${text}</div><div class="cmsg-time">${getTime()}</div>`;
+    msgs.insertBefore(div, typing);
+    msgs.scrollTop = msgs.scrollHeight;
+  }
+
+  function showTyping(show){
+    const t = document.getElementById('chat-typing');
+    const msgs = document.getElementById('chat-msgs');
+    t.classList.toggle('show', show);
+    if(show) msgs.scrollTop = msgs.scrollHeight;
+  }
+
+  async function callAPI(userMsg){
+    chatHistory.push({role:'user', content: userMsg});
+    const btn = document.getElementById('chat-send');
+    const inp = document.getElementById('chat-input');
+    btn.disabled = true; inp.disabled = true;
+    showTyping(true);
+
+    try {
+      const res = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({
+          model: 'claude-sonnet-4-20250514',
+          max_tokens: 1000,
+          system: SYSTEM_PROMPT,
+          messages: chatHistory
+        })
+      });
+      const data = await res.json();
+      const reply = data.content && data.content[0] && data.content[0].text
+        ? data.content[0].text
+        : "Hmm, I'm having a little glitch! 🔧 Please try again.";
+      chatHistory.push({role:'assistant', content: reply});
+      showTyping(false);
+      appendMsg('bot', reply.replace(/\n/g,'<br>'));
+    } catch(e) {
+      showTyping(false);
+      appendMsg('bot', "⚠️ Connection issue — make sure you have a valid Anthropic API key set up. In the meantime, check out the project tabs for all the info!");
+    }
+    btn.disabled = false; inp.disabled = false;
+    inp.focus();
+  }
+
+  function sendMsg(text){
+    const t = (text||'').trim();
+    if(!t) return;
+    document.getElementById('chat-input').value = '';
+    document.getElementById('chat-quick').style.display = 'none';
+    appendMsg('user', t);
+    callAPI(t);
+  }
+
+  window.toggleChat = function(){
+    chatOpen = !chatOpen;
+    document.getElementById('xc-chat-win').classList.toggle('open', chatOpen);
+    document.getElementById('chat-notif').style.display = 'none';
+    if(chatOpen && !chatReady){
+      chatReady = true;
+      setTimeout(()=>{
+        showTyping(true);
+        setTimeout(()=>{
+          showTyping(false);
+          appendMsg('bot', "Hey! 👋 I'm <strong>X-BOT</strong>, your guide to everything about <strong>X-CARBON</strong>! 🌿<br>I can tell you how it captures pollution, converts it to ink, the tech behind it, environmental impact — anything you want to know. What's on your mind?");
+        }, 1200);
+      }, 300);
+    }
+    if(chatOpen) document.getElementById('chat-input').focus();
+  };
+
+  window.quickAsk = function(q){
+    document.getElementById('chat-input').value = q;
+    sendMsg(q);
+  };
+
+  window.sendChat = function(){ sendMsg(document.getElementById('chat-input').value); };
+
+  window.chatKey = function(e){
+    if(e.key==='Enter' && !e.shiftKey){ e.preventDefault(); sendMsg(document.getElementById('chat-input').value); }
+    // auto-resize
+    const ta = document.getElementById('chat-input');
+    ta.style.height='auto'; ta.style.height=Math.min(ta.scrollHeight,80)+'px';
+  };
+
+  // Show chatbot button after splash
+  document.addEventListener('DOMContentLoaded', ()=>{
+    const observer = new MutationObserver(()=>{
+      const app = document.getElementById('app');
+      if(app && app.style.display !== 'none'){
+        document.getElementById('xc-chat-btn').style.display='flex';
+        setTimeout(()=>{ document.getElementById('chat-notif').style.display='block'; }, 2000);
+        observer.disconnect();
+      }
+    });
+    const app = document.getElementById('app');
+    if(app) observer.observe(app, {attributes:true, attributeFilter:['style']});
+  });
+})();
+</script>
+</body>
+</html>
